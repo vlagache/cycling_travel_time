@@ -1,5 +1,11 @@
 # Prediction of bike travel time
 
-# develop
+Création de l'environnement
+
+```cmd
+conda env create -f environment.yml
+```
+
+
 
 
