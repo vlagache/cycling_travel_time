@@ -2,3 +2,4 @@ fit_files/
 gpx_files/
 csv/
 notebooks/
+__pycache__/
