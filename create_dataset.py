@@ -4,12 +4,14 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
-# Fonction qui prend 2 deux dataframe en entrée 
-# - Parcours complet , point toutes les secondes
-# - Parcours ségmenté point toutes les 20 secondes
-# Return un dataframe avec les segments et leurs infos
-
 def transform_road_to_dataset(road,road_segmented):
+    '''
+    Takes two dataframes as an input
+    road : dataframe of all the points of a .fit
+    road_segmented : dataframe with a point every x seconds on which segments have been calculated
+
+    Returns a dataframe in which a line = a segment with all the information associated with this segment (distance, average speed etc...).
+    '''
     
     #Création d'un dataframe avec le début et la fin de chaque segment
     start_end_segments = road_segmented.groupby('segment').agg(['first','last']).stack()
@@ -60,6 +62,13 @@ def transform_road_to_dataset(road,road_segmented):
 
 
 def type_previous_segment(df):
+    '''
+    Takes a dataframe as an input summarizing a road
+    Adds a column comparing the altitude gain of the previous segment to define its type.
+    Ex gain_altitude n-1 = -50 , the previous segment was a descent
+
+    Return a dataframe with 'type_previous' column added
+    '''
     for i in range(len(df)):
         if i == 0:
             df.loc[i,'type_previous'] = 'start'
@@ -72,27 +81,19 @@ def type_previous_segment(df):
             df.loc[i,'type_previous'] = 'flat'
     return df
 
-
-    
-road_segmented = pd.read_csv('csv/alpes_segmented.csv',index_col=0)
-road = pd.read_csv('csv/alpes.csv',index_col=0)
-infos_road = transform_road_to_dataset(road,road_segmented)
-
-columns = ['date','duration','mean_power','mean_speed','mean_heart_rate','mean_cadence','distance','gain_altitude','denivele']
-df = pd.DataFrame(infos_road, columns = columns)
-df = type_previous_segment(df)
-
-print(df)
-
-# Verif Strava
-total_duration = df['duration'].sum()
-total_distance = df['distance'].sum()
-mean_speed = ((total_distance*3600) / total_duration)/1000
+def debug_strava(df):
+    '''
+    Debug function to check that the transformation
+    of a route corresponds with Strava's information.
+    '''
+    total_duration = df['duration'].sum()
+    total_distance = df['distance'].sum()
+    mean_speed = ((total_distance*3600) / total_duration)/1000
 
 
-print(total_duration)
-print((total_distance/1000).round(2))
-print((mean_speed).round(2))
+    print(f'Durée totale(sec) : {total_duration}')
+    print(f'Distance totale(km) : {(total_distance/1000).round(2)}')
+    print(f'Vitesse moyenne(km/h): {(mean_speed).round(2)}')
 
 
 

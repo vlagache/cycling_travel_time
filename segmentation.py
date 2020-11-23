@@ -99,6 +99,9 @@ def transform_fit_into_segments(fitfile):
 
     df = pd.DataFrame(records)
     df = df.drop(['distance','time_from_course','compressed_speed_distance','enhanced_altitude','enhanced_speed','grade','resistance','cycle_length','temperature'], axis='columns')
+    # De base les distances sont toutes a None , on remplace
+    df['distance'] = distances
+
 
     # On prend un point toutes les 20 secondes pour réduire la taille du dataframe
     df_every_20_sec = df.iloc[::20, :]
@@ -123,10 +126,13 @@ def transform_fit_into_segments(fitfile):
     df_every_20_sec = df_every_20_sec.dropna()
     df_every_20_sec = df_every_20_sec.reset_index(drop=True)
 
-    df_every_20_sec = segmentation(df_every_20_sec)
+    df_segmented = segmentation(df_every_20_sec)
     # on rajoute la premiere valeur qu'on avait enlenvé
-    df_every_20_sec = df_nan_values.append(df_every_20_sec,ignore_index=True)
+    df_segmented = df_nan_values.append(df_segmented,ignore_index=True)
 
-    # on save le df initial et celui segmenté
-    df.to_csv("csv/alpes.csv")
-    df_every_20_sec.to_csv("csv/alpes_segmented.csv")
+
+    return df, df_segmented
+
+    # # on save le df initial et celui segmenté
+    # df.to_csv("csv/alpes.csv")
+    # df_segmented.to_csv("csv/alpes_segmented.csv")
