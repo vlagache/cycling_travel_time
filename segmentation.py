@@ -1,5 +1,4 @@
 import pandas as pd
-import fitparse
 from pprint import pprint
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,11 +7,33 @@ warnings.filterwarnings('ignore')
 
 
 
-# segmentation en bloc 
+
 def sign_equal(a,b):
+    '''
+    Compares the two-digit sign and indicates whether they are identical
+    Takes the 0 as a separate value 
+    ex : sign_equal(0,-5) >>> False
+    Return True/False
+    '''
     return np.sign(a) == np.sign(b)
 
 def segmentation(df):
+    '''
+    Takes a dataframe from a .fit with an altitude_gain column as an input.
+    altitude_gain for n equals the difference in altitude between n and n-1
+
+    Calculation of the logical segments (ascent, flat, descent) as a function of altitude gain. 
+    Compare for each line the altitude gain sign n & n-1.
+
+    Same sign, same segment (ex 8 and 5, same ascent segment)
+    Change of sign change of segment (ex 8 and -5, from a downhill segment to an uphill segment)
+
+    Special case for zeros : 
+    if n = 0 et n-1 != 0 : same segment
+    In case of a succession of zeros ( from two ): flat segment
+
+    Returns a dataframe with a segment column
+    '''
     for i in range(len(df['altitude_gain'])):
         
         # premiere ligne on démarre au segment zero
@@ -55,57 +76,57 @@ def segmentation(df):
                     df.loc[i, "segment"] = df.loc[i-1, "segment"] + 1  
     return df
 
+def transform_fit_into_segments(fitfile):
+
+    '''
+    takes a fitfile at input
+    returns a dataframe formatting the fitfile information ( all the dots )
+    and a dataframe with same informations + the segments (with a dot every x seconds).
+    '''
+
+    # récuperation des distances
+    distances = []
+    for record in fitfile.get_messages("record"):
+        for data in record:
+            if data.name == 'distance':
+                if data.value is not None:
+                    distances.append(data.value)
+
+    # recupération des enregistrements point par point
+    records = []
+    for record in fitfile.get_messages("record"):
+        records.append(record.get_values())
+
+    df = pd.DataFrame(records)
+    df = df.drop(['distance','time_from_course','compressed_speed_distance','enhanced_altitude','enhanced_speed','grade','resistance','cycle_length','temperature'], axis='columns')
+
+    # On prend un point toutes les 20 secondes pour réduire la taille du dataframe
+    df_every_20_sec = df.iloc[::20, :]
+    df_every_20_sec = df_every_20_sec.reset_index(drop=True)
+
+    # Calcul des différences d'altitude n & n-1
+    altitude_gain = [np.nan]
+    for i in range(df_every_20_sec.shape[0]):
+        if i > 0:
+            altitude_gain.append(df_every_20_sec['altitude'][i]-df_every_20_sec['altitude'][i-1])
 
 
-# ouverture du fichier .fit
-fitfile = fitparse.FitFile("./fit_files/alpes.fit")
+    df_every_20_sec['altitude_gain'] = altitude_gain
 
-# récuperation des distances
-distances = []
-for record in fitfile.get_messages("record"):
-    for data in record:
-        if data.name == 'distance':
-            if data.value is not None:
-                distances.append(data.value)
+    #On conserve la premiere valeur avec une altitude NaN
+    is_NaN = df_every_20_sec.isnull()
+    row_has_NaN = is_NaN.any(axis=1)
+    df_nan_values = df_every_20_sec[row_has_NaN]
+    df_nan_values['segment'] = 0
 
-# recupération des enregistrements point par point
-records = []
-for record in fitfile.get_messages("record"):
-    records.append(record.get_values())
+    # # On enleve la premiere valeur qui a un gain d'altitude nul ( pas de point avec lequel comparer)
+    df_every_20_sec = df_every_20_sec.dropna()
+    df_every_20_sec = df_every_20_sec.reset_index(drop=True)
 
+    df_every_20_sec = segmentation(df_every_20_sec)
+    # on rajoute la premiere valeur qu'on avait enlenvé
+    df_every_20_sec = df_nan_values.append(df_every_20_sec,ignore_index=True)
 
-df = pd.DataFrame(records)
-df = df.drop(['distance','time_from_course','compressed_speed_distance','enhanced_altitude','enhanced_speed','grade','resistance','cycle_length','temperature'], axis='columns')
-
-
-# On prend un point toutes les 20 secondes pour réduire la taille du dataframe
-df_every_20_sec = df.iloc[::20, :]
-df_every_20_sec = df_every_20_sec.reset_index(drop=True)
-
-# Calcul des différences d'altitude n & n-1
-altitude_gain = [np.nan]
-for i in range(df_every_20_sec.shape[0]):
-    if i > 0:
-        altitude_gain.append(df_every_20_sec['altitude'][i]-df_every_20_sec['altitude'][i-1])
-
-df_every_20_sec['altitude_gain'] = altitude_gain
-
-
-#On conserve la premiere valeur avec une altitude NaN
-is_NaN = df_every_20_sec.isnull()
-row_has_NaN = is_NaN.any(axis=1)
-df_nan_values = df_every_20_sec[row_has_NaN]
-df_nan_values['segment'] = 0
-
-# # On enleve la premiere valeur qui a un gain d'altitude nul ( pas de point avec lequel comparer)
-df_every_20_sec = df_every_20_sec.dropna()
-df_every_20_sec = df_every_20_sec.reset_index(drop=True)
-
-df_every_20_sec = segmentation(df_every_20_sec)
-# on rajoute la premiere valeur qu'on avait enlenvé
-df_every_20_sec = df_nan_values.append(df_every_20_sec,ignore_index=True)
-
-
-# on save le df initial et celui segmenté
-df.to_csv("csv/alpes.csv")
-df_every_20_sec.to_csv("csv/alpes_segmented.csv")
+    # on save le df initial et celui segmenté
+    df.to_csv("csv/alpes.csv")
+    df_every_20_sec.to_csv("csv/alpes_segmented.csv")
