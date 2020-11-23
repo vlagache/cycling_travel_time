@@ -132,7 +132,3 @@ def transform_fit_into_segments(fitfile):
 
 
     return df, df_segmented
-
-    # # on save le df initial et celui segmenté
-    # df.to_csv("csv/alpes.csv")
-    # df_segmented.to_csv("csv/alpes_segmented.csv")
