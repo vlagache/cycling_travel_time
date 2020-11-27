@@ -3,3 +3,4 @@ gpx_files/
 csv/
 notebooks/
 __pycache__/
+.idea/
