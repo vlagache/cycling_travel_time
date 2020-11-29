@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 import fitparse
@@ -5,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from domain.road import Road
+from domain.segment import Segment
 
 
 class RoadTests(unittest.TestCase):
@@ -37,9 +39,24 @@ class RoadTests(unittest.TestCase):
         message = "Echec de la récupération des records du .fit"
         self.assertNotEmpty(self.road.records, message)
 
-    def test_compute_type_previous_segment(self):
-        self.road.parsing_from_fit_file()
+    def test_get_all_points_of_one_segment(self):
+        """
+        makes sure that the cutting of the segments is well done
+        """
+        list_datetime = [
+            datetime.datetime(2020, 1, 1),
+            datetime.datetime(2020, 1, 2),
+            datetime.datetime(2020, 1, 3),
+            datetime.datetime(2020, 1, 4),
 
+        ]
+        self.road.records = {'timestamp': list_datetime}
+        start = datetime.datetime(2020, 1, 1)
+        end = datetime.datetime(2020, 1, 3)
+        expected_shape = (3, 1)
+        all_points_segment = self.road.get_all_points_of_one_segment(start, end)
+        message = "Echec de la récupération de tout les points d'un segment"
+        self.assertEqual(all_points_segment.shape, expected_shape, message)
 
     def test_compute_altitude_gain(self):
         """
@@ -65,3 +82,29 @@ class RoadTests(unittest.TestCase):
         expected = [0, 0, 0, 0, 1, 1, 2, 3, 3, 3]
         actual = df['segment'].tolist()
         self.assertEqual(actual, expected)
+
+    def test_compute_segmentation(self):
+        self.road.parsing_from_fit_file()
+        self.road.compute_segmentation()
+        message = "Echec du calcul de l'heure de début et de fin de chaque segment"
+        self.assertNotEmpty(self.road.segments_schedule, message)
+
+    def test_compute_metrics_segments(self):
+        self.road.parsing_from_fit_file()
+        self.road.compute_segmentation()
+        self.road.compute_metrics_segments()
+        message = 'Echec de la création et du calcul des métriques de chaque segment'
+        for segment in self.road.segments:
+            self.assertIsInstance(segment,
+                                  Segment,
+                                  message)
+            self.assertIsNotNone(segment.average_speed, message)
+
+    def test_compute_type_previous_segment(self):
+        self.road.parsing_from_fit_file()
+        self.road.compute_segmentation()
+        self.road.compute_metrics_segments()
+        self.road.compute_type_previous_segment()
+        message = 'Echec du calcul du type du segment précédent'
+        for segment in self.road.segments:
+            self.assertIsNotNone(segment.type_previous_segment, message)
