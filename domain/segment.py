@@ -31,20 +31,6 @@ class Segment:
             self.set_distance(False)
         self.set_vertical_drop()
 
-        # metrics = {
-        #     "date": self.date,
-        #     "duration": self.duration,
-        #     "average_power": self.average_power,
-        #     "average_speed": self.average_speed,
-        #     "average_heart_rate": self.average_heart_rate,
-        #     "average_cadence": self.average_cadence,
-        #     "gain_altitude": self.gain_altitude,
-        #     "distance": self.distance,
-        #     "vertical_drop": self.vertical_drop
-        # }
-
-        # return metrics
-
     def set_date(self):
         """
         datetime.date
