@@ -10,19 +10,21 @@ from domain.road import Road
 class RoadTests(unittest.TestCase):
 
     def setUp(self):
-        self.road = Road("../fit_files/alpes.fit")
+        self.road = Road(fit_file="../fit_files/alpes.fit")
 
     def assertNotEmpty(self, obj, message):
         self.assertTrue(obj, message)
 
-    def test_parse_fit_file(self):
+    def test_parsing_fit_file(self):
         """
         makes sure the parsing of the fit works and returns a FitFile object
         """
         message = "Echec du parse du .fit"
-        self.assertIsNotNone(self.road.fit_file,
+        self.road.parsing_from_fit_file()
+
+        self.assertIsNotNone(self.road.fit_parse,
                              message)
-        self.assertIsInstance(self.road.fit_file,
+        self.assertIsInstance(self.road.fit_parse,
                               fitparse.base.FitFile,
                               message)
 
@@ -30,9 +32,14 @@ class RoadTests(unittest.TestCase):
         """
         makes sure that recovering .fit points does not return an empty list.
         """
+        self.road.parsing_from_fit_file()
         self.road.get_records_from_fit_file()
         message = "Echec de la récupération des records du .fit"
         self.assertNotEmpty(self.road.records, message)
+
+    def test_compute_type_previous_segment(self):
+        self.road.parsing_from_fit_file()
+
 
     def test_compute_altitude_gain(self):
         """

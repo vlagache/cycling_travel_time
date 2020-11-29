@@ -10,16 +10,19 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 class Road:
     """
-    Different ways to create a class instance
-    segments : instance list of the Segment class
-    fit_file = .fit
+    fit_file = .fit file
+    fit_parse = parsed .fit file
+    records = list with the data of each .fit point
+    segments_schedule = the start and end time of each segment
+    segments = object list Segment
     """
 
-    def __init__(self, segments: [Segment] = None, fit_file=None):
-        self.segments = segments
+    def __init__(self, fit_file):
         self.fit_file = fit_file
         self.fit_parse = None
         self.records = []
+        self.segments_schedule = None
+        self.segments = []
 
     def parsing_from_fit_file(self):
         self.fit_parse = fitparse.FitFile(self.fit_file)
@@ -83,8 +86,75 @@ class Road:
         # We add the first line after segmentation
         segmented_df = first_row.append(segmented_df, ignore_index=True)
 
-        # returns the start and end time of each segment
-        return self.compute_start_end_time_of_segments(segmented_df)
+        # compute the start and end time of each segment
+        self.compute_start_end_time_of_segments(segmented_df)
+
+    def compute_start_end_time_of_segments(self, dataframe):
+        """
+        Aggregates segmented information to have
+        the start and end point of each segment.
+
+        ex :
+                      altitude distance cadence timestamp   ...
+        segment first 88.8     1.85     74       18:33:40
+        0       last  98.2     367.4    91       18:35:00
+        1       first  ...      ...     ...         ...
+                last   ...      ...     ...         ...
+
+        returns a dict with the start and end time for each segment.
+        { "segment_0" : {"start": 18:33:40 , "end": 18:35:00 .... }, ...
+
+        """
+        # segments_time = OrderedDict()
+        segments_schedule = {}
+        df_start_end_segments = dataframe.groupby('segment').agg(['first', 'last']).stack()
+        for i in range(len(df_start_end_segments.xs('first', level=1))):
+            segment_time = {'start': df_start_end_segments.xs('first', level=1)['timestamp'][i],
+                            'end': df_start_end_segments.xs('last', level=1)['timestamp'][i]}
+            segments_schedule[f'segment_{i}'] = segment_time
+
+        self.segments_schedule = segments_schedule
+
+    def get_all_points_of_one_segment(self, start, end):
+        """
+        Segments all the recordings of a route
+        according to a start and end time
+        returns a dataframe.
+        """
+        df = pd.DataFrame(self.records)
+        all_points_segment = df[df['timestamp'].between(start, end)]
+        return all_points_segment
+
+    def compute_metrics_segments(self):
+        """
+        From the information of the start and end time of each segment and
+        of all the points composing it, calculation of the metrics of each segment.
+
+
+        """
+        for i, start_end_segment in enumerate(self.segments_schedule):
+            # First segment of road
+            # We take the points between the beginning
+            # and the end of the segment
+            if i == 0:
+                all_points_segment_df = self.get_all_points_of_one_segment(
+                    start=self.segments_schedule[f'segment_{i}']['start'],
+                    end=self.segments_schedule[f'segment_{i}']['end']
+                )
+                segment = Segment(all_points_segment_df)
+                segment.compute_metrics(first_segment=True)
+                self.segments.append(segment)
+
+            # For all other segments
+            # We take the points between the end of the segment
+            # and the end of the previous segment.
+            else:
+                all_points_segment_df = self.get_all_points_of_one_segment(
+                    start=self.segments_schedule[f'segment_{i - 1}']['end'],
+                    end=self.segments_schedule[f'segment_{i}']['end'])
+                segment = Segment(all_points_segment_df)
+                segment.compute_metrics()
+                self.segments.append(segment)
 
     def compute_type_previous_segment(self):
 
@@ -92,7 +162,7 @@ class Road:
         Calculates the type of the previous segment with a list of instances of class Segment
         """
 
-        for i in range(len(self.segments)):
+        for i, segment in enumerate(self.segments):
             if i == 0:
                 self.segments[i].type_previous_segment = 'start'
             elif self.segments[i - 1].gain_altitude < 0:
@@ -126,44 +196,6 @@ class Road:
         print(f'Durée totale(sec) : {total_duration}')
         print(f'Distance totale(km) : {(total_distance / 1000).round(2)}')
         print(f'Vitesse moyenne(km/h): {mean_speed.round(2)}')
-
-    @staticmethod
-    def get_all_points_of_one_segment(records, start, end):
-        """
-        Segments all the recordings of a route
-        according to a start and end time
-        returns a dataframe.
-        """
-        df = pd.DataFrame(records)
-        all_points_segment = df[df['timestamp'].between(start, end)]
-        return all_points_segment
-
-    @staticmethod
-    def compute_start_end_time_of_segments(dataframe):
-        """
-        Aggregates segmented information to have
-        the start and end point of each segment.
-
-        ex :
-                      altitude distance cadence timestamp   ...
-        segment first 88.8     1.85     74       18:33:40
-        0       last  98.2     367.4    91       18:35:00
-        1       first  ...      ...     ...         ...
-                last   ...      ...     ...         ...
-
-        returns a dict with the start and end time for each segment.
-        { "segment_0" : {"start": 18:33:40 , "end": 18:35:00 .... }, ...
-
-        """
-        # segments_time = OrderedDict()
-        segments_time = {}
-        df_start_end_segments = dataframe.groupby('segment').agg(['first', 'last']).stack()
-        for i in range(len(df_start_end_segments.xs('first', level=1))):
-            segment_time = {'start': df_start_end_segments.xs('first', level=1)['timestamp'][i],
-                            'end': df_start_end_segments.xs('last', level=1)['timestamp'][i]}
-            segments_time[f'segment_{i}'] = segment_time
-
-        return segments_time
 
     @staticmethod
     def compute_altitude_gain(dataframe):
