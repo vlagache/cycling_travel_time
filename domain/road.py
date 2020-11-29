@@ -2,15 +2,27 @@ import fitparse
 import numpy as np
 import pandas as pd
 
+from domain.segment import Segment
 from utils.functions import sign_equal
+
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class Road:
+    """
+    Different ways to create a class instance
+    segments : instance list of the Segment class
+    fit_file = .fit
+    """
 
-    def __init__(self, fit_file):
-        self.fit_file = fitparse.FitFile(fit_file)
+    def __init__(self, segments: [Segment] = None, fit_file=None):
+        self.segments = segments
+        self.fit_file = fit_file
+        self.fit_parse = None
         self.records = []
-        self.segmented_records = []
+
+    def parsing_from_fit_file(self):
+        self.fit_parse = fitparse.FitFile(self.fit_file)
 
     def get_records_from_fit_file(self):
         """
@@ -32,7 +44,7 @@ class Road:
         """
         duplicate_infos = ['enhanced_altitude',
                            'enhanced_speed']
-        for record in self.fit_file.get_messages("record"):
+        for record in self.fit_parse.get_messages("record"):
             record_dict = {}
             for data in record:
                 if data.value is not None:
@@ -41,14 +53,19 @@ class Road:
                     record_dict[data.name] = data.value
             self.records.append(record_dict)
 
-    def compute_segmentation(self):
+    def compute_segmentation(self, time_between_each_records=20):
+
+        """
+        calculates logical ( ascent, descent, flat )  segments from a route
+        time_between_each_records : reduction of the number of points to one point every x seconds
+        """
 
         self.get_records_from_fit_file()
 
         df = pd.DataFrame(self.records)
 
         # Reducing the size of the dataframe
-        reduced_dataframe = df.iloc[::20, :]
+        reduced_dataframe = df.iloc[::time_between_each_records, :]
         reduced_dataframe = reduced_dataframe.reset_index(drop=True)
 
         reduced_dataframe = self.compute_altitude_gain(reduced_dataframe)
@@ -66,7 +83,87 @@ class Road:
         # We add the first line after segmentation
         segmented_df = first_row.append(segmented_df, ignore_index=True)
 
-        self.segmented_records = segmented_df.to_dict('records')
+        # returns the start and end time of each segment
+        return self.compute_start_end_time_of_segments(segmented_df)
+
+    def compute_type_previous_segment(self):
+
+        """
+        Calculates the type of the previous segment with a list of instances of class Segment
+        """
+
+        for i in range(len(self.segments)):
+            if i == 0:
+                self.segments[i].type_previous_segment = 'start'
+            elif self.segments[i - 1].gain_altitude < 0:
+                self.segments[i].type_previous_segment = 'downhill'
+            elif self.segments[i - 1].gain_altitude > 0:
+                self.segments[i].type_previous_segment = 'uphill'
+            else:
+                self.segments[i].type_previous_segment = 'flat'
+
+    def debug_strava(self):
+
+        df = pd.DataFrame()
+        for segment in self.segments:
+            metrics = {
+                "date": segment.date,
+                "duration": segment.duration,
+                "average_power": segment.average_power,
+                "average_speed": segment.average_speed,
+                "average_heart_rate": segment.average_heart_rate,
+                "average_cadence": segment.average_cadence,
+                "gain_altitude": segment.gain_altitude,
+                "distance": segment.distance,
+                "vertical_drop": segment.vertical_drop
+            }
+            df = df.append(metrics, ignore_index=True)
+
+        total_duration = df['duration'].sum()
+        total_distance = df['distance'].sum()
+        mean_speed = ((total_distance * 3600) / total_duration) / 1000
+
+        print(f'Durée totale(sec) : {total_duration}')
+        print(f'Distance totale(km) : {(total_distance / 1000).round(2)}')
+        print(f'Vitesse moyenne(km/h): {mean_speed.round(2)}')
+
+    @staticmethod
+    def get_all_points_of_one_segment(records, start, end):
+        """
+        Segments all the recordings of a route
+        according to a start and end time
+        returns a dataframe.
+        """
+        df = pd.DataFrame(records)
+        all_points_segment = df[df['timestamp'].between(start, end)]
+        return all_points_segment
+
+    @staticmethod
+    def compute_start_end_time_of_segments(dataframe):
+        """
+        Aggregates segmented information to have
+        the start and end point of each segment.
+
+        ex :
+                      altitude distance cadence timestamp   ...
+        segment first 88.8     1.85     74       18:33:40
+        0       last  98.2     367.4    91       18:35:00
+        1       first  ...      ...     ...         ...
+                last   ...      ...     ...         ...
+
+        returns a dict with the start and end time for each segment.
+        { "segment_0" : {"start": 18:33:40 , "end": 18:35:00 .... }, ...
+
+        """
+        # segments_time = OrderedDict()
+        segments_time = {}
+        df_start_end_segments = dataframe.groupby('segment').agg(['first', 'last']).stack()
+        for i in range(len(df_start_end_segments.xs('first', level=1))):
+            segment_time = {'start': df_start_end_segments.xs('first', level=1)['timestamp'][i],
+                            'end': df_start_end_segments.xs('last', level=1)['timestamp'][i]}
+            segments_time[f'segment_{i}'] = segment_time
+
+        return segments_time
 
     @staticmethod
     def compute_altitude_gain(dataframe):
