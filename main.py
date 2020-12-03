@@ -1,18 +1,30 @@
 from domain.road import Road
-from domain.segment import Segment
+from infrastructure.import_strava import ImportStrava
+import fitparse
 
 if __name__ == "__main__":
-
     ### Connection a l'api Strava
     ### Recuperation de tout les fichiers .fit
     ### Pour chaque fichier .fit logique suivante =>
 
-    road = Road(fit_file="./fit_files/alpes.fit")
-    road.parsing_from_fit_file()
-    road.compute_segmentation()
-    road.compute_metrics_segments()
-    road.compute_type_previous_segment()
-    road.debug_strava()
+    import_strava = ImportStrava()
+    # import_strava.get_cycling_activities_fit_file()
+    # import_strava.dezip_file()
+    import_strava.test_fit_file()
 
-   ### pour chaque segment d'une route
-   ### Injection en base de données
+
+
+
+
+
+    # road = Road(fit_file="./fit_files/alpes.fit")
+    # road.parsing_from_fit_file()
+    # road.compute_segmentation()
+    # road.compute_metrics_segments()
+    # road.compute_type_previous_segment()
+    # road.debug_strava()
+
+
+
+### pour chaque segment d'une route
+### Injection en base de données

@@ -4,3 +4,5 @@ csv/
 notebooks/
 __pycache__/
 .idea/
+export_strava/
+import_strava/
