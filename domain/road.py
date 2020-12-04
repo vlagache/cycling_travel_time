@@ -41,7 +41,7 @@ class Road:
             "position_long" (semicircle),
             "power" (watts) ,
             "speed" (m/s) ,
-            "datetime" (datetime),
+            "timestamp" (datetime),
         }
 
         """
