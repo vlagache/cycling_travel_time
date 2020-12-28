@@ -14,6 +14,10 @@ class ImportStrava:
     directory_files_unzip = 'import_strava/activities_unzip/'
     directory_missing_info = 'import_strava/activities_missing_info/'
     directory_wrong_timedelta = 'import_strava/activities_wrong_timedelta'
+
+    # TODO : Some information does not seem to be
+    #  present in the real activities (altitude, power ...).
+
     mandatory_information = [
         'altitude',
         'distance',
@@ -22,7 +26,8 @@ class ImportStrava:
         'power',
         'position_lat',
         'position_long',
-        'heart_rate']
+        'heart_rate',
+        'cadence']
 
     def __init__(self):
         self.cycling_fit_files_names = []
@@ -38,14 +43,19 @@ class ImportStrava:
         We then keep only the name of each of the files.
         """
         df = pd.read_csv(self.activities_full_csv)
-        activities_type = df["Type d'activité"].unique()
 
         # Take only "Vélo" activities
-        cycling_activity_type = [
-            activity_type for activity_type in activities_type if 'Vélo' in activity_type
-        ]
 
-        df_cycling = df.loc[df["Type d'activité"].isin(cycling_activity_type)]
+        # activities_type = df["Type d'activité"].unique()
+        # cycling_activity_type = [
+        #     activity_type for activity_type in activities_type if 'Vélo' in activity_type
+        # ]
+        #
+        # df_cycling = df.loc[df["Type d'activité"].isin(cycling_activity_type)]
+
+        # TODO We only take Home Trainer activities for the MVP.
+
+        df_cycling = df.loc[df["Type d'activité"] == "Vélo virtuel"]
 
         # remove activities with a distance = 0
         # Distance is considered as a string

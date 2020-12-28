@@ -78,6 +78,7 @@ class RoadTests(unittest.TestCase):
         makes sure that the logical block segmentation is correct
         """
         df = pd.DataFrame({'altitude_gain': [1, 50, 2, 0, -1, -20, 2, 0, 0, 0]})
+        # df = pd.DataFrame({'altitude_gain': [0, 0, 2]})
         df = self.road.segmentation(df)
         expected = [0, 0, 0, 0, 1, 1, 2, 3, 3, 3]
         actual = df['segment'].tolist()
@@ -92,7 +93,7 @@ class RoadTests(unittest.TestCase):
     def test_compute_metrics_segments(self):
         self.road.parsing_from_fit_file()
         self.road.compute_segmentation()
-        self.road.compute_metrics_segments()
+        self.road.compute_metrics_segments(activity_number=1)
         message = 'Echec de la création et du calcul des métriques de chaque segment'
         for segment in self.road.segments:
             self.assertIsInstance(segment,
@@ -103,7 +104,7 @@ class RoadTests(unittest.TestCase):
     def test_compute_type_previous_segment(self):
         self.road.parsing_from_fit_file()
         self.road.compute_segmentation()
-        self.road.compute_metrics_segments()
+        self.road.compute_metrics_segments(activity_number=1)
         self.road.compute_type_previous_segment()
         message = 'Echec du calcul du type du segment précédent'
         for segment in self.road.segments:

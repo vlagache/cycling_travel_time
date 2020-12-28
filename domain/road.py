@@ -16,6 +16,16 @@ class Road:
     segments_schedule = the start and end time of each segment
     segments = object list Segment
     """
+    mandatory_information = [
+        'altitude',
+        'distance',
+        'timestamp',
+        'speed',
+        'power',
+        'position_lat',
+        'position_long',
+        'heart_rate',
+        'cadence']
 
     def __init__(self, fit_file):
         self.fit_file = fit_file
@@ -45,16 +55,20 @@ class Road:
         }
 
         """
-        duplicate_infos = ['enhanced_altitude',
-                           'enhanced_speed']
+
         for record in self.fit_parse.get_messages("record"):
             record_dict = {}
             for data in record:
                 if data.value is not None:
-                    if data.name in duplicate_infos:
-                        continue
-                    record_dict[data.name] = data.value
+                    if data.name in self.mandatory_information:
+                        record_dict[data.name] = data.value
             self.records.append(record_dict)
+
+    def get_device_info_from_fit_file(self):
+        for record in self.fit_parse.get_messages("device_info"):
+            for data in record:
+                if data.name == 'manufacturer':
+                    print(data)
 
     def compute_segmentation(self, time_between_each_records=20):
 
@@ -125,7 +139,7 @@ class Road:
         all_points_segment = df[df['timestamp'].between(start, end)]
         return all_points_segment
 
-    def compute_metrics_segments(self):
+    def compute_metrics_segments(self, activity_number):
         """
         From the information of the start and end time of each segment and
         of all the points composing it, calculation of the metrics of each segment.
@@ -141,7 +155,7 @@ class Road:
                     start=self.segments_schedule[f'segment_{i}']['start'],
                     end=self.segments_schedule[f'segment_{i}']['end']
                 )
-                segment = Segment(all_points_segment_df)
+                segment = Segment(all_points_segment_df, activity_number)
                 segment.compute_metrics(first_segment=True)
                 self.segments.append(segment)
 
@@ -152,7 +166,7 @@ class Road:
                 all_points_segment_df = self.get_all_points_of_one_segment(
                     start=self.segments_schedule[f'segment_{i - 1}']['end'],
                     end=self.segments_schedule[f'segment_{i}']['end'])
-                segment = Segment(all_points_segment_df)
+                segment = Segment(all_points_segment_df, activity_number)
                 segment.compute_metrics()
                 self.segments.append(segment)
 
@@ -177,6 +191,7 @@ class Road:
         df = pd.DataFrame()
         for segment in self.segments:
             metrics = {
+                "activity_number": segment.activity_number,
                 "date": segment.date,
                 "duration": segment.duration,
                 "average_power": segment.average_power,
@@ -192,10 +207,18 @@ class Road:
         total_duration = df['duration'].sum()
         total_distance = df['distance'].sum()
         mean_speed = ((total_distance * 3600) / total_duration) / 1000
+        gain_altitude_positive = df.loc[df['gain_altitude'] >= 0]
+        gain_altitude = gain_altitude_positive['gain_altitude'].sum()
+        mean_power = df['average_power'].mean()
+        mean_cadence = df['average_cadence'].mean()
 
+        print(df)
         print(f'Durée totale(sec) : {total_duration}')
         print(f'Distance totale(km) : {(total_distance / 1000).round(2)}')
         print(f'Vitesse moyenne(km/h): {mean_speed.round(2)}')
+        print(f'Denivelée: {gain_altitude}')
+        print(f'Puissance moyenne : {mean_power.round(2)}')
+        print(f'Cadence moyenne: {mean_cadence.round(2)}')
 
     @staticmethod
     def compute_altitude_gain(dataframe):
@@ -245,16 +268,22 @@ class Road:
                     # In the case where n and n-1 are zero
                     if dataframe.loc[i, 'altitude_gain'] == 0 and dataframe.loc[i - 1, 'altitude_gain'] == 0:
 
-                        # if n-2 is not equal to zero
-                        # Flat segment, we want to make a new segment, and change it retrospectively,
-                        # the segment of n-1 which is no longer a "alone" zero anymore
-                        if dataframe.loc[i - 2, 'altitude_gain'] != 0:
-                            dataframe.loc[i, "segment"] = dataframe.loc[i - 1, "segment"] + 1
-                            dataframe.loc[i - 1, "segment"] = dataframe.loc[i - 1, "segment"] + 1
-                        # if n , n-1 , n-2 = 0 , you don't want to change segment
-                        # succession of zero
-                        else:
+                        # In case we are on the second line, we cannot check n-2 if n and n-1 = 0.
+                        if i == 1:
                             dataframe.loc[i, "segment"] = dataframe.loc[i - 1, "segment"]
+                        else:
+
+                            # if n-2 is not equal to zero
+                            # Flat segment, we want to make a new segment, and change it retrospectively,
+                            # the segment of n-1 which is no longer a "alone" zero anymore
+                            if dataframe.loc[i - 2, 'altitude_gain'] != 0:
+                                dataframe.loc[i, "segment"] = dataframe.loc[i - 1, "segment"] + 1
+                                dataframe.loc[i - 1, "segment"] = dataframe.loc[i - 1, "segment"] + 1
+                            # if n , n-1 , n-2 = 0 , you don't want to change segment
+                            # succession of zero
+                            else:
+                                dataframe.loc[i, "segment"] = dataframe.loc[i - 1, "segment"]
+
                     # If the same sign without any special case, same segment
                     else:
                         dataframe.loc[i, "segment"] = dataframe.loc[i - 1, "segment"]

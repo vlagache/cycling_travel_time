@@ -4,7 +4,8 @@ import pandas as pd
 
 class Segment:
 
-    def __init__(self, records_df):
+    def __init__(self, records_df, activity_number):
+        self.activity_number = activity_number
         self.records_df = records_df
         self.date = None
         self.duration = None
