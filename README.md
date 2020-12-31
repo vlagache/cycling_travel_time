@@ -6,6 +6,11 @@ Création de l'environnement
 conda env create -f environment.yml
 ```
 
+### Elasticsearch + Kibana
+```
+docker-compose -f docker-compose.yml up
+docker-compose -f docker-compose.yml down
+```
 
 ### Strava Auth
 

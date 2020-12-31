@@ -2,7 +2,6 @@ import json
 import logging
 import os.path
 import time
-from pprint import pprint
 
 import requests
 from dotenv import load_dotenv
@@ -11,11 +10,13 @@ from dotenv import load_dotenv
 class ImportStrava:
     load_dotenv()
 
-    def __init__(self):
+    def __init__(self, dao):
         self.access_token = None
         self.refresh_token = None
+        self.dao = dao
 
-    def check_token_exists(self):
+    @staticmethod
+    def check_token_exists():
         if os.path.exists('strava_token.json'):
             return True
         else:
@@ -45,20 +46,23 @@ class ImportStrava:
             }
         )
         print(strava_request.json())
+        self.access_token = strava_request.json()['access_token']
         with open('strava_token.json', 'w') as outfile:
             json.dump(strava_request.json(), outfile)
 
-    def get_all_activities(self):
-        ids_list = []
+    def get_all_activities_ids(self):
+        """
+        Recovers all cycling strava activities ids
+        Returns the list of the ids of the activities entered in base
+        """
         mandatory_type_activity = ['VirtualRide', 'Ride']
         page_number = 1
+        activities_ids = []
         while True:
-            if page_number > 1:
-                break
             strava_request = requests.get(
                 'https://www.strava.com/api/v3/athlete/activities',
                 params={
-                    'per_page': 1,
+                    'per_page': 200,
                     'page': page_number
                 },
                 headers={
@@ -68,24 +72,25 @@ class ImportStrava:
             if not strava_request.json():
                 break
 
-            pprint(strava_request.json())
-            print(len(strava_request.json()))
             for activity in strava_request.json():
-                # TODO : activity in database
                 if activity['type'] not in mandatory_type_activity:
                     continue
-                print(activity['name'])
-                print(activity['type'])
-                print(activity['id'])
-                print(activity['start_date'])
+                activities_ids.append(activity['id'])
             page_number += 1
+        logging.info(f'Recovery of {len(activities_ids)} activities')
 
-    def get_segments_for_activity(self, id_activity):
-        id_activity = '4513379684'
+        return activities_ids
+
+    def store_activity(self, activity_id):
         strava_request = requests.get(
-            f'https://www.strava.com/api/v3/activities/{id_activity}?include_all_efforts=',
+            f'https://www.strava.com/api/v3/activities/{activity_id}?include_all_efforts=',
             headers={
                 'Authorization': f'Bearer {self.access_token}'
             }
         )
-        pprint(strava_request.json())
+        activity_json = strava_request.json()
+        self.dao.store_data(
+            data_json=activity_json,
+            index_name='index_activity',
+            id_data=activity_json['id']
+        )
