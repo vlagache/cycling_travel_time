@@ -26,7 +26,7 @@ if __name__ == "__main__":
         existing_activities = 0
         added_activities = 0
         for activity_id in activities_ids:
-            if elasticsearch.check_doc_exists(
+            if elasticsearch.check_if_doc_exists(
                     index_name='index_activity',
                     id_data=activity_id
             ):

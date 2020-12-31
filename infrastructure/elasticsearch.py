@@ -29,7 +29,7 @@ class Elasticsearch:
             )
         return es_object.get('_id')
 
-    def check_doc_exists(self, index_name, id_data):
+    def check_if_doc_exists(self, index_name, id_data):
         return self.database.exists(
             index=index_name,
             id=id_data
