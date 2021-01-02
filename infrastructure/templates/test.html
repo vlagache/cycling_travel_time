@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pente Simulator Reboot Touchy By Design</title>
+        <!--Import Google Icon Font-->
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+            <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    </head>
+    <body>
+
+        {% if auth %}
+            <div> Already auth , pas de button Strava Connect</div>
+        {% else %}
+            <p class="authstrava">
+                <a href="/strava_authorize" class="center-align"><img src=" images/btn_strava_connectwith_orange.png" /></a>
+<!--            <a href="/strava_authorize" class="center-align orange darken-4 waves-effect waves-light btn-small"><i class="material-icons left">verified</i>Auth Strava</a>-->
+            </p>
+        {% endif %}
+
+
+
+        <p class="pwdstrava">
+            <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
+        </p>
+
+
+
+
+            <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </body>
+</html>
