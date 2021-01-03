@@ -4,11 +4,13 @@ from typing import Optional
 
 import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Cookie, Depends, Response
+from fastapi import FastAPI, HTTPException, Request, Cookie, Depends, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, Response
+
+from infrastructure.elasticsearch import Elasticsearch
 
 load_dotenv()
 app = FastAPI()
@@ -23,23 +25,48 @@ templates = Jinja2Templates(directory="templates")
 ############# TEST DEBUG
 
 
-def get_current_user(access_token: str = Cookie(None)):
+def get_current_token(access_token: str = Cookie(None)):
     if not access_token:
         return None
     else:
-        return "???"
-        # data = decrypt(session)  # some cryptography decryption
-        # user = query_user(data["user"])  # Query user
-        # return user
+        return access_token
+
+
+@app.get("/auth", response_class=HTMLResponse)
+async def main(request: Request, access_token=Depends(get_current_token)):
+
+    if not access_token:
+        ### Template pour s'authentifier
+        return templates.TemplateResponse("auth.html", {"request": request})
+    else:
+        #### Template pour Charger les activités etc...
+        return access_token
 
 
 @app.get("/", response_class=HTMLResponse)
-async def main(request: Request, current_user=Depends(get_current_user)):
-    already_auth = False
-    if not current_user:
-        return templates.TemplateResponse("test.html", {"request": request, "auth": already_auth})
+async def check_user(request: Request):
+    return templates.TemplateResponse("check_user.html", {"request": request})
+
+
+@app.post("/")
+async def check_user(first_name: str = Form(...),
+                     last_name: str = Form(...)):
+    elasticsearch = Elasticsearch(local_connect=True)
+    if elasticsearch.check_if_user_exist(first_name, last_name):
+        # TODO : On recupere les infos en base qu'on set en cookie ?
+        return "User exist"
     else:
-        return current_user
+        return RedirectResponse("/auth", status_code=302)
+
+    # if check_if_user_exist(first_name,last_name):
+    #     # On recupere ses tokens
+    #     if token_still_valid:
+    #         redirect to /loading_activity
+    #     else:
+    #         refresh_token
+    # else:
+    #     redirect to /auth
+    #
 
 
 #############
@@ -56,12 +83,6 @@ def exchange_token(authorization_code):
         }
     )
     return strava_request.json()
-
-    # with open('../strava_token.json', 'w') as outfile:
-    #     json.dump(strava_request.json(), outfile)
-    #
-    # return "Récupération des tokens d'accés au compte"
-
 
 @app.get("/strava_authorize")
 async def strava_authorize():
@@ -93,19 +114,15 @@ async def strava_token(response: Response, code: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Missing code param")
     else:
         response_strava = exchange_token(authorization_code)
-        return response_strava
-        # response.set_cookie(key="session", value=response_strava)
-        # return RedirectResponse("/", status_code=302)
+        elasticsearch = Elasticsearch(local_connect=True)
+        elasticsearch.store_data(
+            data_json=response_strava,
+            index_name="index_user",
+            id_data=response_strava['athlete']['id']
+        )
+        access_token = response_strava['access_token']
+        response = RedirectResponse("/auth")
+        #TODO : set cookie refresh token , expire at ?
 
-        # On verifie si un utilisateur avec le meme id existe dans la base de données
-        # SI Oui on récupérere son access_token => Cookie
-        # Si Non on l'inscrit en base , et son access_token => Cookie
-
-# @app.get("/set_cookie")
-# async def strava_token(response: Response, session: str = Cookie(None)):
-#     print(session)
-#     dict_test = {
-#         "token": 124568,
-#         "refresh_token": 56646541654
-#     }
-#     response.set_cookie(key="session", value=dict_test)
+        response.set_cookie(key="access_token", value=str(access_token))
+        return response

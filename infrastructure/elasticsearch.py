@@ -1,6 +1,7 @@
 import logging
 
 import elasticsearch
+from elasticsearch import exceptions
 
 
 class Elasticsearch:
@@ -34,3 +35,28 @@ class Elasticsearch:
             index=index_name,
             id=id_data
         )
+
+    def check_if_user_exist(self, first_name, last_name):
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "first_name": first_name
+                            }
+                        },
+                        {
+                            "match": {
+                                "last_name": last_name
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        try:
+            return self.database.search(index="index_user", body=query)
+        # If the index does not exist
+        except exceptions.NotFoundError:
+            return False

@@ -3,4 +3,3 @@ __pycache__/
 .idea/
 .env
 strava_token.json
-infrastructure/images/
