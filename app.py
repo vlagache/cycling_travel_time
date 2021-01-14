@@ -4,11 +4,11 @@ from typing import Optional
 
 import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Cookie, Depends, Form
+from fastapi import FastAPI, HTTPException, Request, Cookie, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import RedirectResponse
 
 from infrastructure.elasticsearch import Elasticsearch
 
@@ -24,23 +24,20 @@ templates = Jinja2Templates(directory="templates")
 
 ############# TEST DEBUG
 
-
-def get_current_token(access_token: str = Cookie(None)):
-    if not access_token:
-        return None
+@app.get("/debug")
+async def debug():
+    first_name = "Vincent"
+    last_name = "Lagache"
+    elasticsearch = Elasticsearch(local_connect=True)
+    if elasticsearch.check_if_user_exist(first_name, last_name):
+        user = elasticsearch.search_user(first_name, last_name)
+        access_token = user["_source"]["access_token"]
+        refresh_token = user["_source"]["refresh_token"]
+        token_expires_at = user["_source"]["expires_at"]
+        user_id = user["_id"]
+        return f'{access_token} , {refresh_token}, {token_expires_at}, {user_id}'
     else:
-        return access_token
-
-
-@app.get("/auth", response_class=HTMLResponse)
-async def main(request: Request, access_token=Depends(get_current_token)):
-
-    if not access_token:
-        ### Template pour s'authentifier
-        return templates.TemplateResponse("auth.html", {"request": request})
-    else:
-        #### Template pour Charger les activités etc...
-        return access_token
+        return "pas d'utilisateur a ce nom"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -53,20 +50,40 @@ async def check_user(first_name: str = Form(...),
                      last_name: str = Form(...)):
     elasticsearch = Elasticsearch(local_connect=True)
     if elasticsearch.check_if_user_exist(first_name, last_name):
-        # TODO : On recupere les infos en base qu'on set en cookie ?
-        return "User exist"
+
+        user = elasticsearch.search_user(first_name, last_name)
+        response = RedirectResponse("/authenticated_user", status_code=302)
+        response.set_cookie(key="access_token", value=str(user["_source"]["access_token"]))
+        response.set_cookie(key="refresh_token", value=str(user["_source"]["refresh_token"]))
+        response.set_cookie(key="token_expires_at", value=str(user["_source"]["expires_at"]))
+        response.set_cookie(key="user_id", value=str(user["_id"]))
+        return response
+
     else:
         return RedirectResponse("/auth", status_code=302)
 
-    # if check_if_user_exist(first_name,last_name):
-    #     # On recupere ses tokens
-    #     if token_still_valid:
-    #         redirect to /loading_activity
-    #     else:
-    #         refresh_token
-    # else:
-    #     redirect to /auth
-    #
+
+@app.get("/auth", response_class=HTMLResponse)
+async def main(request: Request):
+
+    ### Template pour s'authentifier
+    return templates.TemplateResponse("auth.html", {"request": request})
+
+
+@app.get("/authenticated_user", response_class=HTMLResponse)
+async def authenticated_user(request: Request,
+                             access_token: str = Cookie(None),
+                             refresh_token: str = Cookie(None),
+                             token_expires_at: str = Cookie(None),
+                             user_id: str = Cookie(None)
+                             ):
+
+    return templates.TemplateResponse("authenticated_user.html",
+                                      {"request": request,
+                                       "access_token": access_token,
+                                       "refresh_token": refresh_token,
+                                       "token_expires_at": token_expires_at,
+                                       "user_id": user_id})
 
 
 #############
@@ -83,6 +100,7 @@ def exchange_token(authorization_code):
         }
     )
     return strava_request.json()
+
 
 @app.get("/strava_authorize")
 async def strava_authorize():
@@ -104,7 +122,7 @@ async def strava_authorize():
 
 
 @app.get("/strava_token")
-async def strava_token(response: Response, code: Optional[str] = None):
+async def strava_token(code: Optional[str] = None):
     """
     Request for an access token limited to the user account
     in exchange for the authorization code.
@@ -115,14 +133,16 @@ async def strava_token(response: Response, code: Optional[str] = None):
     else:
         response_strava = exchange_token(authorization_code)
         elasticsearch = Elasticsearch(local_connect=True)
-        elasticsearch.store_data(
+        user_id = elasticsearch.store_data(
             data_json=response_strava,
             index_name="index_user",
             id_data=response_strava['athlete']['id']
         )
-        access_token = response_strava['access_token']
-        response = RedirectResponse("/auth")
-        #TODO : set cookie refresh token , expire at ?
 
-        response.set_cookie(key="access_token", value=str(access_token))
+        response = RedirectResponse("/authenticated_user")
+        response.set_cookie(key="access_token", value=str(response_strava['access_token']))
+        response.set_cookie(key="refresh_token", value=str(response_strava['refresh_token']))
+        response.set_cookie(key="token_expires_at", value=str(response_strava['expires_at']))
+        response.set_cookie(key="user_id", value=str(user_id))
+
         return response

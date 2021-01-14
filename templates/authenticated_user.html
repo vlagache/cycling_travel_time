@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pente Simulator Reboot Touchy By Design</title>
+        <!--Import Google Icon Font-->
+          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+            <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    </head>
+    <body>
+
+        <div id="infos">
+            <p> access token : {{ access_token }}</p>
+            <p> refresh_token : {{ refresh_token }}</p>
+            <p> expires_at : {{ token_expires_at }}</p>
+            <p> user_id : {{ user_id }}</p>
+        </div>
+
+
+
+        <p class="pwdstrava">
+            <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
+        </p>
+
+
+
+
+            <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </body>
+</html>

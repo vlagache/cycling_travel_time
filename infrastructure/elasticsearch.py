@@ -30,33 +30,43 @@ class Elasticsearch:
             )
         return es_object.get('_id')
 
-    def check_if_doc_exists(self, index_name, id_data):
-        return self.database.exists(
-            index=index_name,
-            id=id_data
-        )
-
-    def check_if_user_exist(self, first_name, last_name):
+    def search_user(self, first_name, last_name):
         query = {
             "query": {
                 "bool": {
                     "must": [
                         {
                             "match": {
-                                "first_name": first_name
+                                "athlete.firstname": first_name
                             }
                         },
                         {
                             "match": {
-                                "last_name": last_name
+                                "athlete.lastname": last_name
                             }
                         }
                     ]
                 }
             }
         }
+        response = self.database.search(index="index_user", body=query)
+
+        if response['hits']['total']['value'] == 0:
+            return None
+        elif response['hits']['total']['value'] == 1:
+            return response['hits']['hits'][0]
+
+    def check_if_user_exist(self, first_name, last_name):
+
         try:
-            return self.database.search(index="index_user", body=query)
-        # If the index does not exist
+            response = self.search_user(first_name, last_name)
+
+            if response is not None:
+                return True
+            else:
+                return False
+        # If the index does not yet exist
         except exceptions.NotFoundError:
             return False
+
+

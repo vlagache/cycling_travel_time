@@ -15,8 +15,7 @@ docker-compose -f docker-compose.yml down
 ### Strava Auth
 
 ```
-cd infrastructure
-uvicorn webservice:app --reload --host=0.0.0.0 --port=8090
+uvicorn app:app --reload --host=0.0.0.0 --port=8090
 ```
 
 http://localhost:8090/strava_authorize
