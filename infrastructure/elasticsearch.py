@@ -69,4 +69,19 @@ class Elasticsearch:
         except exceptions.NotFoundError:
             return False
 
+    def update_tokens_user(self,
+                           access_token,
+                           refresh_token,
+                           token_expires_at,
+                           user_id):
+        body = {
+            "doc": {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "expires_at": token_expires_at
+            }
+        }
 
+        self.database.update(index="index_user",
+                             id=user_id,
+                             body=body)

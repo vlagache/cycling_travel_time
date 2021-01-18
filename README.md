@@ -18,7 +18,7 @@ docker-compose -f docker-compose.yml down
 uvicorn app:app --reload --host=0.0.0.0 --port=8090
 ```
 
-http://localhost:8090/strava_authorize
+http://localhost:8090/
 
 
 

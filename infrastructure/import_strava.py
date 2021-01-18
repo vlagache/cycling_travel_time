@@ -1,4 +1,3 @@
-import json
 import logging
 import os.path
 import time
@@ -6,36 +5,43 @@ import time
 import requests
 from dotenv import load_dotenv
 
+from infrastructure.elasticsearch import Elasticsearch
+
 
 class ImportStrava:
     load_dotenv()
 
-    def __init__(self, dao):
-        self.access_token = None
-        self.refresh_token = None
+    def __init__(self, access_token, refresh_token, token_expires_at, user_id, dao: Elasticsearch):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.token_expires_at = token_expires_at
+        self.user_id = user_id
         self.dao = dao
 
-    @staticmethod
-    def check_token_exists():
-        if os.path.exists('strava_token.json'):
-            return True
-        else:
-            return False
+    # DEBUG
+    def random_function(self):
+        if not self.check_if_token_is_valid():
+            self.refresh_strava_token()
 
-    def check_token_is_valid(self):
-        with open('strava_token.json') as json_file:
-            strava_tokens = json.load(json_file)
+            # Random function do....
 
-        if strava_tokens['expires_at'] < time.time():
+    def check_if_token_is_valid(self):
+        """
+        Checks if the access_token is still valid
+        Return True/False
+        """
+        if self.token_expires_at < time.time():
             logging.info("Token expired")
-            self.refresh_token = strava_tokens['refresh_token']
             return False
         else:
-            logging.info("Token still valid")
-            self.access_token = strava_tokens['access_token']
+            logging.info("Token is still valid")
             return True
 
     def refresh_strava_token(self):
+        """
+        Send to strava the refresh_token to get a new access_token and a new refresh_token.
+        """
+        logging.info("Token refreshment")
         strava_request = requests.post(
             'https://www.strava.com/oauth/token',
             data={
@@ -45,10 +51,15 @@ class ImportStrava:
                 'grant_type': 'refresh_token'
             }
         )
-        print(strava_request.json())
+
         self.access_token = strava_request.json()['access_token']
-        with open('strava_token.json', 'w') as outfile:
-            json.dump(strava_request.json(), outfile)
+        self.refresh_token = strava_request.json()['refresh_token']
+        self.token_expires_at = strava_request.json()['expires_at']
+
+        self.dao.update_tokens_user(access_token=self.access_token,
+                                    refresh_token=self.refresh_token,
+                                    token_expires_at=self.token_expires_at,
+                                    user_id=self.user_id)
 
     def get_all_activities_ids(self):
         """

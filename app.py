@@ -1,21 +1,29 @@
 import os
 import urllib.parse
-from typing import Optional
-
 import requests
 from dotenv import load_dotenv
+import logging
+
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
+from typing import Optional
+
 
 from infrastructure.elasticsearch import Elasticsearch
+from infrastructure.import_strava import ImportStrava
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s',
+                    datefmt='%d-%b-%y %H:%M:%S',
+                    level=logging.DEBUG)
 
 load_dotenv()
 app = FastAPI()
-
+elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
+
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/images", StaticFiles(directory="images"), name="images")
@@ -27,7 +35,7 @@ templates = Jinja2Templates(directory="templates")
 @app.get("/debug")
 async def debug():
     first_name = "Vincent"
-    last_name = "Lagache"
+    last_name = "Lagachee"
     elasticsearch = Elasticsearch(local_connect=True)
     if elasticsearch.check_if_user_exist(first_name, last_name):
         user = elasticsearch.search_user(first_name, last_name)
@@ -77,13 +85,17 @@ async def authenticated_user(request: Request,
                              token_expires_at: str = Cookie(None),
                              user_id: str = Cookie(None)
                              ):
+    import_strava = ImportStrava(access_token=str(access_token),
+                                 refresh_token=str(refresh_token),
+                                 token_expires_at=int(token_expires_at),
+                                 user_id=str(user_id),
+                                 dao=elasticsearch)
 
+    import_strava.random_function()
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
-                                       "access_token": access_token,
-                                       "refresh_token": refresh_token,
-                                       "token_expires_at": token_expires_at,
-                                       "user_id": user_id})
+                                       "import_strava": import_strava})
+
 
 
 #############
@@ -132,11 +144,10 @@ async def strava_token(code: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Missing code param")
     else:
         response_strava = exchange_token(authorization_code)
-        elasticsearch = Elasticsearch(local_connect=True)
         user_id = elasticsearch.store_data(
             data_json=response_strava,
             index_name="index_user",
-            id_data=response_strava['athlete']['id']
+            id_data=int(response_strava['athlete']['id'])
         )
 
         response = RedirectResponse("/authenticated_user")
