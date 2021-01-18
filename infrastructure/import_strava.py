@@ -18,13 +18,6 @@ class ImportStrava:
         self.user_id = user_id
         self.dao = dao
 
-    # DEBUG
-    def random_function(self):
-        if not self.check_if_token_is_valid():
-            self.refresh_strava_token()
-
-            # Random function do....
-
     def check_if_token_is_valid(self):
         """
         Checks if the access_token is still valid
@@ -61,11 +54,21 @@ class ImportStrava:
                                     token_expires_at=self.token_expires_at,
                                     user_id=self.user_id)
 
+    def refresh_token_if_not_valid(self):
+        """
+        Refreshes access token if it is no longer valid.
+        """
+        if not self.check_if_token_is_valid():
+            self.refresh_strava_token()
+
     def get_all_activities_ids(self):
         """
         Recovers all cycling strava activities ids
         Returns the list of the ids of the activities entered in base
         """
+
+        self.refresh_token_if_not_valid()
+
         mandatory_type_activity = ['VirtualRide', 'Ride']
         page_number = 1
         activities_ids = []
@@ -88,11 +91,30 @@ class ImportStrava:
                     continue
                 activities_ids.append(activity['id'])
             page_number += 1
-        logging.info(f'Recovery of {len(activities_ids)} activities')
+        logging.info(f'Recovery of {len(activities_ids)} activities from Strava')
 
         return activities_ids
 
-    def store_activity(self, activity_id):
+    def get_new_activities(self):
+        """
+        From the list of all Strava's activities, removing of ones
+        that are already in the database so as not to request them again.
+        Returns ids of the activities to be added
+        """
+        activities_ids = self.get_all_activities_ids()
+        activities_ids_to_added = [
+            activity_id for activity_id in activities_ids if not self.dao.check_if_doc_exists(
+                index_name="index_activity",
+                id_data=activity_id
+            )
+        ]
+        logging.info(f'{len(activities_ids_to_added)} new activities to be added to the database')
+        return activities_ids_to_added
+
+    def get_activity_by_id(self, activity_id):
+        """
+        retrieve all the information of an activity on Strava
+        """
         strava_request = requests.get(
             f'https://www.strava.com/api/v3/activities/{activity_id}?include_all_efforts=',
             headers={
@@ -100,8 +122,19 @@ class ImportStrava:
             }
         )
         activity_json = strava_request.json()
-        self.dao.store_data(
-            data_json=activity_json,
-            index_name='index_activity',
-            id_data=activity_json['id']
-        )
+
+        return activity_json
+
+    def storage_of_new_activities(self):
+        """
+        Stores on the database all new activities
+        """
+        activities_ids_to_added = self.get_new_activities()
+        for activity_id in activities_ids_to_added:
+            activity_json = self.get_activity_by_id(activity_id=activity_id)
+            self.dao.store_data(
+                data_json=activity_json,
+                index_name='index_activity',
+                id_data=activity_json['id']
+            )
+        logging.info(f'{len(activities_ids_to_added)} activities added to the database')

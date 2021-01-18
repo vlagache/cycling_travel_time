@@ -11,13 +11,19 @@
     </head>
     <body>
 
-        <div class="row">
-            <div id="infos" class="col s11 push-s1">
+        <div id="infos" class="row">
+            <div class="col s11 push-s1">
                 <p> access token : {{ import_strava.access_token }}</p>
                 <p> refresh_token : {{ import_strava.refresh_token }}</p>
                 <p> expires_at : {{ import_strava.token_expires_at }}</p>
                 <p> user_id : {{ import_strava.user_id }}</p>
-                <p> token_is_valid : {{ import_strava.token_is_valid }}</p>
+            </div>
+        </div>
+
+        <div id="activities_ids" class="row">
+            <div class="col s11 push-s1">
+                <p> new activities on Strava: {{ new_activities }}</p>
+                <p> activities in database: {{ activities_in_base }}</p>
             </div>
         </div>
 

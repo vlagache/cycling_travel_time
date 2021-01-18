@@ -30,6 +30,18 @@ class Elasticsearch:
             )
         return es_object.get('_id')
 
+    def get_all_docs_in_index(self, index_name):
+
+        results = self.database.search(index=index_name,
+                                       body={"query": {"match_all": {}}})
+        return results
+
+    def check_if_doc_exists(self, index_name, id_data):
+        return self.database.exists(
+            index=index_name,
+            id=id_data
+        )
+
     def search_user(self, first_name, last_name):
         query = {
             "query": {

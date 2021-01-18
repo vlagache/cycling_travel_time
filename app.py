@@ -1,16 +1,15 @@
+import logging
 import os
 import urllib.parse
+from typing import Optional
+
 import requests
 from dotenv import load_dotenv
-import logging
-
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
-from typing import Optional
-
 
 from infrastructure.elasticsearch import Elasticsearch
 from infrastructure.import_strava import ImportStrava
@@ -24,28 +23,19 @@ app = FastAPI()
 elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/images", StaticFiles(directory="images"), name="images")
 templates = Jinja2Templates(directory="templates")
 
 
-############# TEST DEBUG
-
+################# DEBUG
 @app.get("/debug")
 async def debug():
-    first_name = "Vincent"
-    last_name = "Lagachee"
-    elasticsearch = Elasticsearch(local_connect=True)
-    if elasticsearch.check_if_user_exist(first_name, last_name):
-        user = elasticsearch.search_user(first_name, last_name)
-        access_token = user["_source"]["access_token"]
-        refresh_token = user["_source"]["refresh_token"]
-        token_expires_at = user["_source"]["expires_at"]
-        user_id = user["_id"]
-        return f'{access_token} , {refresh_token}, {token_expires_at}, {user_id}'
-    else:
-        return "pas d'utilisateur a ce nom"
+    response = elasticsearch.get_all_docs_in_index(index_name='index_activity')
+    return response['hits']['total']['value']
+
+
+###################
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -56,7 +46,6 @@ async def check_user(request: Request):
 @app.post("/")
 async def check_user(first_name: str = Form(...),
                      last_name: str = Form(...)):
-    elasticsearch = Elasticsearch(local_connect=True)
     if elasticsearch.check_if_user_exist(first_name, last_name):
 
         user = elasticsearch.search_user(first_name, last_name)
@@ -73,7 +62,6 @@ async def check_user(first_name: str = Form(...),
 
 @app.get("/auth", response_class=HTMLResponse)
 async def main(request: Request):
-
     ### Template pour s'authentifier
     return templates.TemplateResponse("auth.html", {"request": request})
 
@@ -91,11 +79,17 @@ async def authenticated_user(request: Request,
                                  user_id=str(user_id),
                                  dao=elasticsearch)
 
-    import_strava.random_function()
+    activities_ids = import_strava.get_new_activities()
+    # Ajouter les activités qui sont sur strava et qui ne sont pas dans la base
+    # Afficher le nombre d'activités en bases et les nouvelles activités sur strava
+    response = elasticsearch.get_all_docs_in_index(index_name='index_activity')
+    activities_in_base = response['hits']['total']['value']
+
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
-                                       "import_strava": import_strava})
-
+                                       "import_strava": import_strava,
+                                       "new_activities": len(activities_ids),
+                                       "activities_in_base": activities_in_base})
 
 
 #############
