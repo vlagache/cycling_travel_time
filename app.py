@@ -1,5 +1,7 @@
+import datetime
 import logging
 import os
+import time
 import urllib.parse
 from typing import Optional
 
@@ -24,6 +26,7 @@ elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/js", StaticFiles(directory="js"), name="js")
 app.mount("/images", StaticFiles(directory="images"), name="images")
 templates = Jinja2Templates(directory="templates")
 
@@ -31,8 +34,15 @@ templates = Jinja2Templates(directory="templates")
 ################# DEBUG
 @app.get("/debug")
 async def debug():
-    response = elasticsearch.get_all_docs_in_index(index_name='index_activity')
-    return response['hits']['total']['value']
+    time.sleep(5)
+    strava_response = {
+        'number_of_new_activities': 10,
+        'name_last_activity': "Test nom derniere activité",
+        'date_last_activity': "23/01/2021 à 14h44h58"
+    }
+    return strava_response
+
+
 
 
 ###################
@@ -79,17 +89,28 @@ async def authenticated_user(request: Request,
                                  user_id=str(user_id),
                                  dao=elasticsearch)
 
-    activities_ids = import_strava.get_new_activities()
-    # Ajouter les activités qui sont sur strava et qui ne sont pas dans la base
-    # Afficher le nombre d'activités en bases et les nouvelles activités sur strava
-    response = elasticsearch.get_all_docs_in_index(index_name='index_activity')
-    activities_in_base = response['hits']['total']['value']
+    response = elasticsearch.get_all_activities()
+    if response is not None:
+        activities_in_base = response['hits']['total']['value']
+        name_last_activity = response['hits']['hits'][0]['_source']['name']
+        date_last_activity = response['hits']['hits'][0]['_source']['start_date_local']
+        format_date_last_activity = datetime.datetime.strptime(date_last_activity, "%Y-%m-%dT%H:%M:%SZ")
+        new_format = "%d/%m/%Y à %H:%M:%S"
+        format_date_last_activity = format_date_last_activity.strftime(new_format)
+        infos_activities = {
+            'activities_in_base': activities_in_base,
+            'name_last_activity': name_last_activity,
+            'format_date_last_activity': format_date_last_activity
+        }
+    else:
+        infos_activities = None
+
+    # activities_ids = import_strava.get_new_activities()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
                                        "import_strava": import_strava,
-                                       "new_activities": len(activities_ids),
-                                       "activities_in_base": activities_in_base})
+                                       "infos_activities": infos_activities})
 
 
 #############

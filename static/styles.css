@@ -1,3 +1,7 @@
+body {
+  background-color: lightgrey;
+}
+
 .authstrava{
   position: absolute;
   left: 50%;
@@ -12,5 +16,7 @@
     right:0;
 }
 
-
+#circle_loading{
+  display: none;
+}
 

@@ -30,11 +30,25 @@ class Elasticsearch:
             )
         return es_object.get('_id')
 
-    def get_all_docs_in_index(self, index_name):
+    def get_all_activities(self):
 
-        results = self.database.search(index=index_name,
-                                       body={"query": {"match_all": {}}})
-        return results
+        try:
+            query = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort": [
+                    {"laps.start_date_local": "desc"}
+                ]
+            }
+            # results = self.database.search(index=index_name,
+            #                                body={"query": {"match_all": {}}})
+            results = self.database.search(index="index_activity",
+                                           body=query)
+            return results
+
+        except exceptions.NotFoundError:
+            return None
 
     def check_if_doc_exists(self, index_name, id_data):
         return self.database.exists(

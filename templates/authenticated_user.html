@@ -10,33 +10,74 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     </head>
     <body>
+        
+        <div class="container">
 
-        <div id="infos" class="row">
-            <div class="col s11 push-s1">
-                <p> access token : {{ import_strava.access_token }}</p>
-                <p> refresh_token : {{ import_strava.refresh_token }}</p>
-                <p> expires_at : {{ import_strava.token_expires_at }}</p>
-                <p> user_id : {{ import_strava.user_id }}</p>
+
+            <div id="auth_infos" class="row">
+                <div class="col s11 push-s1">
+                    <h2> Infos Auth</h2>
+                    <p> access token : {{ import_strava.access_token }}</p>
+                    <p> refresh_token : {{ import_strava.refresh_token }}</p>
+                    <p> expires_at : {{ import_strava.token_expires_at }}</p>
+                    <p> user_id : {{ import_strava.user_id }}</p>
+                </div>
             </div>
-        </div>
 
-        <div id="activities_ids" class="row">
-            <div class="col s11 push-s1">
-                <p> new activities on Strava: {{ new_activities }}</p>
-                <p> activities in database: {{ activities_in_base }}</p>
+            <div id="database_infos" class="row">
+                <div class="col s11 push-s1">
+                <h2>Infos base de données / Strava</h2>
+                {% if infos_activitie is not none %}
+                    <p> Nombre d'activités en base : <span class="activities_in_base">{{ infos_activities.activities_in_base}}</span></p>
+                    <p> Nom de la derniere activité : <span class="name_last_activity">{{ infos_activities.name_last_activity}}</span></p>
+                    <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ infos_activities.format_date_last_activity}}</span></p>
+                {% else %}
+                    <p> Aucune activité en base pour le moment...</p>
+                {% endif %}
+
+                <a id="check_activities" class="waves-effect waves-light btn">Update Database</a>
+                <p>
+                    <div id="circle_loading" class="preloader-wrapper active">
+                        <div class="spinner-layer spinner-red-only">
+                            <div class="circle-clipper left">
+                            <div class="circle"></div>
+                            </div><div class="gap-patch">
+                            <div class="circle"></div>
+                            </div><div class="circle-clipper right">
+                            <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </p>
             </div>
+
+            <div id="other" class="row">
+                <div class="col s11 push-s1">
+                    <h2> A faire </h2>
+                    <p> Chargement d'un parcours à réaliser</p>
+                    <p> Entrainement modele machine learning</p>
+                </div>
+            </div>
+
+            <div id="other" class="row">
+                <div class="col s11 push-s1">
+                    <p>
+                        <a class="btn" href="/authenticated_user">Refresh</a>
+                    </p>
+                </div>
+            </div>
+
+        
+
         </div>
-
-
 
         <p class="pwdstrava">
             <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
         </p>
 
-
-
-
             <!-- Compiled and minified JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="js/jquery.js"></script>
     </body>
 </html>
