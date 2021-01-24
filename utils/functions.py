@@ -1,3 +1,5 @@
+import datetime
+
 import numpy as np
 
 
@@ -9,3 +11,10 @@ def sign_equal(a, b):
     Return True/False
     """
     return np.sign(a) == np.sign(b)
+
+
+def transforms_string_in_datetime(str_date):
+    format_date = datetime.datetime.strptime(str_date, "%Y-%m-%dT%H:%M:%SZ")
+    new_format = "%d/%m/%Y à %H:%M:%S"
+    format_date = format_date.strftime(new_format)
+    return format_date

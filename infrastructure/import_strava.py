@@ -18,6 +18,8 @@ class ImportStrava:
         self.user_id = user_id
         self.dao = dao
 
+    # TOKEN VALID / TOKEN REFRESH
+
     def check_if_token_is_valid(self):
         """
         Checks if the access_token is still valid
@@ -61,10 +63,12 @@ class ImportStrava:
         if not self.check_if_token_is_valid():
             self.refresh_strava_token()
 
+    # ACTIVITIES
+
     def get_all_activities_ids(self):
         """
         Recovers all cycling strava activities ids
-        Returns the list of the ids of the activities entered in base
+        Returns the list of the ids of the activities
         """
 
         self.refresh_token_if_not_valid()
@@ -95,7 +99,21 @@ class ImportStrava:
 
         return activities_ids
 
-    def get_new_activities(self):
+    def get_activity_by_id(self, activity_id):
+        """
+        retrieve all the information of an activity on Strava
+        """
+        strava_request = requests.get(
+            f'https://www.strava.com/api/v3/activities/{activity_id}?include_all_efforts=',
+            headers={
+                'Authorization': f'Bearer {self.access_token}'
+            }
+        )
+        activity_json = strava_request.json()
+
+        return activity_json
+
+    def get_new_activities_ids(self):
         """
         From the list of all Strava's activities, removing of ones
         that are already in the database so as not to request them again.
@@ -111,25 +129,11 @@ class ImportStrava:
         logging.info(f'{len(activities_ids_to_added)} new activities to be added to the database')
         return activities_ids_to_added
 
-    def get_activity_by_id(self, activity_id):
-        """
-        retrieve all the information of an activity on Strava
-        """
-        strava_request = requests.get(
-            f'https://www.strava.com/api/v3/activities/{activity_id}?include_all_efforts=',
-            headers={
-                'Authorization': f'Bearer {self.access_token}'
-            }
-        )
-        activity_json = strava_request.json()
-
-        return activity_json
-
     def storage_of_new_activities(self):
         """
         Stores on the database all new activities
         """
-        activities_ids_to_added = self.get_new_activities()
+        activities_ids_to_added = self.get_new_activities_ids()
         for activity_id in activities_ids_to_added:
             activity_json = self.get_activity_by_id(activity_id=activity_id)
             self.dao.store_data(
@@ -138,3 +142,52 @@ class ImportStrava:
                 id_data=activity_json['id']
             )
         logging.info(f'{len(activities_ids_to_added)} activities added to the database')
+
+    # ROUTES
+
+    def store_all_routes_athlete(self):
+        """
+        Stores all the athlete's routes on Elasticsearch together with the gpx file
+        """
+        self.refresh_token_if_not_valid()
+        page_number = 1
+        routes_number = 0
+        while True:
+            strava_request = requests.get(
+                f'https://www.strava.com/api/v3/athletes/{self.user_id}/routes',
+                params={
+                    'per_page': 200,
+                    'page': page_number
+                },
+                headers={
+                    'Authorization': f'Bearer {self.access_token}'
+                }
+            )
+            if not strava_request.json():
+                break
+
+            for route in strava_request.json():
+                gpx_file = self.get_route_gpx(route['id'])
+                route['gpx_file'] = gpx_file
+                self.dao.store_data(
+                    data_json=route,
+                    index_name='index_route',
+                    id_data=route['id']
+                )
+                routes_number += 1
+            page_number += 1
+
+        logging.info(f'{routes_number} routes added to the database')
+
+    def get_route_gpx(self, route_id):
+        """
+        Retrieve a gpx file of a route from its id
+        """
+        strava_request = requests.get(
+            f'https://www.strava.com/api/v3/routes/{route_id}/export_gpx',
+            headers={
+                'Authorization': f'Bearer {self.access_token}'
+            }
+        )
+        gpx_file = strava_request.text
+        return gpx_file

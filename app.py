@@ -1,9 +1,11 @@
-import datetime
 import logging
 import os
 import time
 import urllib.parse
 from typing import Optional
+
+import gpxpy
+import pandas as pd
 
 import requests
 from dotenv import load_dotenv
@@ -32,17 +34,45 @@ templates = Jinja2Templates(directory="templates")
 
 
 ################# DEBUG
+
+
 @app.get("/debug")
 async def debug():
     time.sleep(5)
     strava_response = {
-        'number_of_new_activities': 10,
+        'number_of_new_activities': 2,
         'name_last_activity': "Test nom derniere activité",
         'date_last_activity': "23/01/2021 à 14h44h58"
     }
     return strava_response
 
 
+@app.get("/route")
+async def route(access_token: str = Cookie(None),
+                refresh_token: str = Cookie(None),
+                token_expires_at: str = Cookie(None),
+                user_id: str = Cookie(None)):
+    import_strava = ImportStrava(access_token=str(access_token),
+                                 refresh_token=str(refresh_token),
+                                 token_expires_at=int(token_expires_at),
+                                 user_id=str(user_id),
+                                 dao=elasticsearch)
+
+    return import_strava.store_all_routes_athlete()
+
+
+@app.get("/get_route")
+async def get_route():
+    route_test = elasticsearch.get_doc_by_id(index_name="index_route",
+                                             id_data=2787335981548134218)
+    gpx = gpxpy.parse(route_test['gpx_file'])
+    data = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                data.append([point.latitude, point.longitude, point.elevation])
+    df = pd.DataFrame(data, columns=['latitude', 'longitude', 'elevation'])
+    print(df)
 
 
 ###################
@@ -89,28 +119,14 @@ async def authenticated_user(request: Request,
                                  user_id=str(user_id),
                                  dao=elasticsearch)
 
-    response = elasticsearch.get_all_activities()
-    if response is not None:
-        activities_in_base = response['hits']['total']['value']
-        name_last_activity = response['hits']['hits'][0]['_source']['name']
-        date_last_activity = response['hits']['hits'][0]['_source']['start_date_local']
-        format_date_last_activity = datetime.datetime.strptime(date_last_activity, "%Y-%m-%dT%H:%M:%SZ")
-        new_format = "%d/%m/%Y à %H:%M:%S"
-        format_date_last_activity = format_date_last_activity.strftime(new_format)
-        infos_activities = {
-            'activities_in_base': activities_in_base,
-            'name_last_activity': name_last_activity,
-            'format_date_last_activity': format_date_last_activity
-        }
-    else:
-        infos_activities = None
-
-    # activities_ids = import_strava.get_new_activities()
+    info_activities = elasticsearch.retrieve_general_info_on_activities()
+    info_routes = elasticsearch.retrieve_general_info_on_routes()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
                                        "import_strava": import_strava,
-                                       "infos_activities": infos_activities})
+                                       "info_activities": info_activities,
+                                       "info_routes": info_routes})
 
 
 #############

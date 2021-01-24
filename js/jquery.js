@@ -18,8 +18,9 @@ jQuery(document).ready(function(){
             url: '/debug'
         }
         $.ajax(options).done(response => {
-            console.log(response)
             if(response.number_of_new_activities > 0){
+                console.log(response.number_of_new_activities)
+                console.log(number_of_activities)
                 var new_number_of_activities = (+response.number_of_new_activities) + (+number_of_activities)
                 $(".activities_in_base").text(new_number_of_activities)
                 $(".name_last_activity").text(response.name_last_activity)
