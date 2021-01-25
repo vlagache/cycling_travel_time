@@ -20,3 +20,6 @@ body {
   display: none;
 }
 
+#info_when_no_activities{
+  display: none;
+}

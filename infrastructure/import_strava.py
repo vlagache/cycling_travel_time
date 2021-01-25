@@ -134,14 +134,18 @@ class ImportStrava:
         Stores on the database all new activities
         """
         activities_ids_to_added = self.get_new_activities_ids()
-        for activity_id in activities_ids_to_added:
-            activity_json = self.get_activity_by_id(activity_id=activity_id)
-            self.dao.store_data(
-                data_json=activity_json,
-                index_name='index_activity',
-                id_data=activity_json['id']
-            )
-        logging.info(f'{len(activities_ids_to_added)} activities added to the database')
+        activities_added = 0
+        if len(activities_ids_to_added) != 0:
+            for activity_id in activities_ids_to_added:
+                activity_json = self.get_activity_by_id(activity_id=activity_id)
+                self.dao.store_data(
+                    data_json=activity_json,
+                    index_name='index_activity',
+                    id_data=activity_json['id']
+                )
+                activities_added += 1
+            logging.info(f'{activities_added} activities added to the database')
+        return activities_added
 
     # ROUTES
 

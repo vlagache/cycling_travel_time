@@ -28,11 +28,18 @@
                 <div class="col s11 push-s1">
                 <h2>Activités</h2>
                 {% if info_activities is not none %}
-                    <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
-                    <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
-                    <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.format_date_last_activity }}</span></p>
+                    <div id="info_activities">
+                        <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
+                        <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
+                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.format_date_last_activity }}</span></p>
+                    </div>
                 {% else %}
-                    <p> Aucune activité en base pour le moment...</p>
+                    <div id="info_when_no_activities">
+                        <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
+                        <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
+                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.format_date_last_activity }}</span></p>
+                    </div>
+                    <p class="no_activities"> Aucune activité en base pour le moment...</p>
                 {% endif %}
 
                 <a id="check_activities" class="waves-effect waves-light btn">Update Database</a>
@@ -68,6 +75,7 @@
                 <div class="col s11 push-s1">
                     <h2>To do</h2>
                     <p>Faire réelement les updates Activités/Routes avec une route de l'app qui va réelement update</p>
+                    <p> Modifier la logique des cookies ( supprimer ) et récuperer les tokens en base a chaque fois en gardant qu'un seul token_user_id </p>
                     <p>Page suivante ou on choisit la route à prédire ( Back end Segmentation ) </p>
                     <p> Entrainement modele machine learning</p>
                 </div>

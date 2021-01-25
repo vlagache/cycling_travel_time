@@ -49,7 +49,6 @@ class Elasticsearch:
             doc = result['hits']['hits'][0]['_source']
             return doc
 
-
     def retrieve_general_info_on_activities(self):
         """
         Returns a dictionary with :

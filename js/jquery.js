@@ -6,25 +6,25 @@ jQuery(document).ready(function(){
 
     $(document).ajaxStop(function(){
         $("#circle_loading").hide()
+        // In the case where there is no activity in base at the start
+        $("#info_when_no_activities").show()
+        $(".no_activities").hide()
+
     })
 
 
     $('#check_activities').on( 'click', function(e){
         $('#check_activities').addClass('disabled')
-        var number_of_activities = $(".activities_in_base").text()
         e.preventDefault();
         let options = {
             method:'GET',
-            url: '/debug'
+            url: '/get_new_activities'
         }
         $.ajax(options).done(response => {
-            if(response.number_of_new_activities > 0){
-                console.log(response.number_of_new_activities)
-                console.log(number_of_activities)
-                var new_number_of_activities = (+response.number_of_new_activities) + (+number_of_activities)
-                $(".activities_in_base").text(new_number_of_activities)
+            if(response.activities_added > 0){
+                $(".activities_in_base").text(response.activities_in_base)
                 $(".name_last_activity").text(response.name_last_activity)
-                $(".date_last_activity").text(response.date_last_activity)
+                $(".date_last_activity").text(response.format_date_last_activity)
             } else {
                 $("<p> Aucune nouvelle activitée à charger </p>").insertAfter("#check_activities")
             }

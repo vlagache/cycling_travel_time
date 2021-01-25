@@ -6,7 +6,6 @@ from typing import Optional
 
 import gpxpy
 import pandas as pd
-
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
@@ -38,13 +37,9 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/debug")
 async def debug():
-    time.sleep(5)
-    strava_response = {
-        'number_of_new_activities': 2,
-        'name_last_activity': "Test nom derniere activité",
-        'date_last_activity': "23/01/2021 à 14h44h58"
-    }
-    return strava_response
+    info_activities = elasticsearch.retrieve_general_info_on_activities()
+    return info_activities
+
 
 
 @app.get("/route")
@@ -131,7 +126,26 @@ async def authenticated_user(request: Request,
 
 #############
 
+@app.get("/get_new_activities")
+async def get_new_activities(access_token: str = Cookie(None),
+                             refresh_token: str = Cookie(None),
+                             token_expires_at: str = Cookie(None),
+                             user_id: str = Cookie(None)):
 
+    import_strava = ImportStrava(access_token=str(access_token),
+                                 refresh_token=str(refresh_token),
+                                 token_expires_at=int(token_expires_at),
+                                 user_id=str(user_id),
+                                 dao=elasticsearch)
+
+    activities_added = import_strava.storage_of_new_activities()
+    info_activities = elasticsearch.retrieve_general_info_on_activities()
+    info_activities['activities_added'] = activities_added
+    return info_activities
+
+
+
+############
 def exchange_token(authorization_code):
     strava_request = requests.post(
         'https://www.strava.com/oauth/token',
