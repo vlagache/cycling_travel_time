@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 import urllib.parse
 from typing import Optional
 
@@ -14,6 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
+from domain import athlete
+from infrastructure.adapter_data import AdapterAthlete
+from infrastructure.elasticsearch import ElasticAthleteRepository
 from infrastructure.elasticsearch import Elasticsearch
 from infrastructure.import_strava import ImportStrava
 
@@ -25,6 +27,8 @@ load_dotenv()
 app = FastAPI()
 elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
+
+athlete.repository = ElasticAthleteRepository()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/js", StaticFiles(directory="js"), name="js")
@@ -39,7 +43,6 @@ templates = Jinja2Templates(directory="templates")
 async def debug():
     info_activities = elasticsearch.retrieve_general_info_on_activities()
     return info_activities
-
 
 
 @app.get("/route")
@@ -79,18 +82,16 @@ async def check_user(request: Request):
 
 
 @app.post("/")
-async def check_user(first_name: str = Form(...),
-                     last_name: str = Form(...)):
-    if elasticsearch.check_if_user_exist(first_name, last_name):
-
-        user = elasticsearch.search_user(first_name, last_name)
+async def check_user(firstname: str = Form(...),
+                     lastname: str = Form(...)):
+    athlete_ = athlete.repository.check_if_exist(firstname, lastname)
+    if athlete_ is not None:
         response = RedirectResponse("/authenticated_user", status_code=302)
-        response.set_cookie(key="access_token", value=str(user["_source"]["access_token"]))
-        response.set_cookie(key="refresh_token", value=str(user["_source"]["refresh_token"]))
-        response.set_cookie(key="token_expires_at", value=str(user["_source"]["expires_at"]))
-        response.set_cookie(key="user_id", value=str(user["_id"]))
+        response.set_cookie(key="access_token", value=athlete_.access_token)
+        response.set_cookie(key="refresh_token", value=athlete_.refresh_token)
+        response.set_cookie(key="token_expires_at", value=str(athlete_.token_expires_at))
+        response.set_cookie(key="user_id", value=str(athlete_.id))
         return response
-
     else:
         return RedirectResponse("/auth", status_code=302)
 
@@ -131,7 +132,6 @@ async def get_new_activities(access_token: str = Cookie(None),
                              refresh_token: str = Cookie(None),
                              token_expires_at: str = Cookie(None),
                              user_id: str = Cookie(None)):
-
     import_strava = ImportStrava(access_token=str(access_token),
                                  refresh_token=str(refresh_token),
                                  token_expires_at=int(token_expires_at),
@@ -142,7 +142,6 @@ async def get_new_activities(access_token: str = Cookie(None),
     info_activities = elasticsearch.retrieve_general_info_on_activities()
     info_activities['activities_added'] = activities_added
     return info_activities
-
 
 
 ############
@@ -189,16 +188,14 @@ async def strava_token(code: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Missing code param")
     else:
         response_strava = exchange_token(authorization_code)
-        user_id = elasticsearch.store_data(
-            data_json=response_strava,
-            index_name="index_user",
-            id_data=int(response_strava['athlete']['id'])
-        )
+        # Athlete
+        athlete_ = AdapterAthlete(response_strava).get()
+        athlete.repository.save(athlete_)
 
         response = RedirectResponse("/authenticated_user")
-        response.set_cookie(key="access_token", value=str(response_strava['access_token']))
-        response.set_cookie(key="refresh_token", value=str(response_strava['refresh_token']))
-        response.set_cookie(key="token_expires_at", value=str(response_strava['expires_at']))
-        response.set_cookie(key="user_id", value=str(user_id))
+        response.set_cookie(key="access_token", value=athlete_.access_token)
+        response.set_cookie(key="refresh_token", value=athlete_.refresh_token)
+        response.set_cookie(key="token_expires_at", value=str(athlete_.token_expires_at))
+        response.set_cookie(key="user_id", value=str(athlete_.id))
 
         return response

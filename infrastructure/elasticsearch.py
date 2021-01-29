@@ -1,9 +1,18 @@
+import json
 import logging
 
 import elasticsearch
+import jsonpickle
 from elasticsearch import exceptions
 
+from domain.athlete import Athlete, AthleteRepository
 from utils.functions import transforms_string_in_datetime
+
+
+def read(obj):
+    if isinstance(obj, dict):
+        return json.dumps(obj)
+    return obj
 
 
 class Elasticsearch:
@@ -18,17 +27,23 @@ class Elasticsearch:
             hosts = [{"host": 'elasticsearch', "port": 9200}]
         self.database = elasticsearch.Elasticsearch(hosts=hosts)
 
-    def store_data(self, data_json, index_name, id_data=None):
+    def add_index(self, index: str):
+        try:
+            self.database.indices.create(index=index)
+        except elasticsearch.exceptions.RequestError:
+            pass
+
+    def store_data(self, data, index_name, id_data=None):
         if id_data is not None:
             es_object = self.database.index(
                 index=index_name,
                 id=id_data,
-                body=data_json
+                body=data
             )
         else:
             es_object = self.database.index(
                 index=index_name,
-                body=data_json
+                body=data
             )
         return es_object.get('_id')
 
@@ -37,6 +52,11 @@ class Elasticsearch:
             index=index_name,
             id=id_data
         )
+
+    def check_match_with_query(self, index_name, query: dict):
+        response = self.database.search(index=index_name, body=query)
+        if response['hits']['total']['value'] == 1:
+            return response['hits']['hits'][0]
 
     def get_doc_by_id(self, index_name, id_data):
         result = self.database.search(
@@ -48,6 +68,8 @@ class Elasticsearch:
         else:
             doc = result['hits']['hits'][0]['_source']
             return doc
+
+        #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### ####
 
     def retrieve_general_info_on_activities(self):
         """
@@ -109,45 +131,6 @@ class Elasticsearch:
         except exceptions.NotFoundError:
             return None
 
-    def search_user(self, first_name, last_name):
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "match": {
-                                "athlete.firstname": first_name
-                            }
-                        },
-                        {
-                            "match": {
-                                "athlete.lastname": last_name
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        response = self.database.search(index="index_user", body=query)
-
-        if response['hits']['total']['value'] == 0:
-            return None
-        elif response['hits']['total']['value'] == 1:
-            return response['hits']['hits'][0]
-
-    def check_if_user_exist(self, first_name, last_name):
-
-        try:
-            response = self.search_user(first_name, last_name)
-
-            if response is not None:
-                return True
-            else:
-                return False
-        # If the index does not yet exist
-        except exceptions.NotFoundError:
-            return False
-
     def update_tokens_user(self,
                            access_token,
                            refresh_token,
@@ -164,3 +147,42 @@ class Elasticsearch:
         self.database.update(index="index_user",
                              id=user_id,
                              body=body)
+
+
+class ElasticAthleteRepository(AthleteRepository):
+    index = "index-athlete"
+
+    def __init__(self):
+        self.elastic = Elasticsearch(local_connect=True)
+        self.elastic.add_index(self.index)
+
+    def save(self, athlete: Athlete):
+        return self.elastic.store_data(
+            data=jsonpickle.encode(athlete),
+            index_name=self.index,
+            id_data=athlete.id
+        )
+
+    def check_if_exist(self, firstname, lastname) -> Athlete:
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "firstname": firstname
+                            }
+                        },
+                        {
+                            "match": {
+                                "lastname": lastname
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        result = self.elastic.check_match_with_query(index_name=self.index, query=query)
+        if result is not None:
+            athlete = jsonpickle.decode(read(result.get("_source")))
+            return athlete
