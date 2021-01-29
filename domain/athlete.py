@@ -12,10 +12,16 @@ class Athlete:
 
 class AthleteRepository:
 
+    def get(self, id_) -> Athlete:
+        raise NotImplementedError()
+
     def save(self, athlete: Athlete):
         raise NotImplementedError()
 
-    def check_if_exist(self, firstname, lastname) -> Athlete:
+    def update_tokens(self, id_, access_token, refresh_token, token_expires_at):
+        raise NotImplementedError()
+
+    def search_if_exist(self, firstname, lastname) -> Athlete:
         raise NotImplementedError()
 
 

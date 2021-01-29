@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 import urllib.parse
 from typing import Optional
 
@@ -13,9 +14,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from domain import athlete
+from domain import athlete, activity
 from infrastructure.adapter_data import AdapterAthlete
-from infrastructure.elasticsearch import ElasticAthleteRepository
+from infrastructure.elasticsearch import ElasticAthleteRepository, ElasticActivityRepository
 from infrastructure.elasticsearch import Elasticsearch
 from infrastructure.import_strava import ImportStrava
 
@@ -29,6 +30,7 @@ elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 athlete.repository = ElasticAthleteRepository()
+activity.repository = ElasticActivityRepository()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/js", StaticFiles(directory="js"), name="js")
@@ -40,9 +42,13 @@ templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/debug")
-async def debug():
-    info_activities = elasticsearch.retrieve_general_info_on_activities()
-    return info_activities
+async def debug(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
+    import_strava.storage_of_new_activities()
+
+
+
 
 
 @app.get("/route")
@@ -84,13 +90,10 @@ async def check_user(request: Request):
 @app.post("/")
 async def check_user(firstname: str = Form(...),
                      lastname: str = Form(...)):
-    athlete_ = athlete.repository.check_if_exist(firstname, lastname)
+    athlete_ = athlete.repository.search_if_exist(firstname, lastname)
     if athlete_ is not None:
         response = RedirectResponse("/authenticated_user", status_code=302)
-        response.set_cookie(key="access_token", value=athlete_.access_token)
-        response.set_cookie(key="refresh_token", value=athlete_.refresh_token)
-        response.set_cookie(key="token_expires_at", value=str(athlete_.token_expires_at))
-        response.set_cookie(key="user_id", value=str(athlete_.id))
+        response.set_cookie(key="athlete_id", value=str(athlete_.id))
         return response
     else:
         return RedirectResponse("/auth", status_code=302)
@@ -98,31 +101,28 @@ async def check_user(firstname: str = Form(...),
 
 @app.get("/auth", response_class=HTMLResponse)
 async def main(request: Request):
-    ### Template pour s'authentifier
     return templates.TemplateResponse("auth.html", {"request": request})
 
 
 @app.get("/authenticated_user", response_class=HTMLResponse)
 async def authenticated_user(request: Request,
-                             access_token: str = Cookie(None),
-                             refresh_token: str = Cookie(None),
-                             token_expires_at: str = Cookie(None),
-                             user_id: str = Cookie(None)
+                             athlete_id: str = Cookie(None)
                              ):
-    import_strava = ImportStrava(access_token=str(access_token),
-                                 refresh_token=str(refresh_token),
-                                 token_expires_at=int(token_expires_at),
-                                 user_id=str(user_id),
-                                 dao=elasticsearch)
+    # TODO : The new athlete does not have the time to be registered
+    #  in the database before request.
+    time.sleep(1)
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
+    print(import_strava.get_new_activities_ids())
 
-    info_activities = elasticsearch.retrieve_general_info_on_activities()
-    info_routes = elasticsearch.retrieve_general_info_on_routes()
-
-    return templates.TemplateResponse("authenticated_user.html",
-                                      {"request": request,
-                                       "import_strava": import_strava,
-                                       "info_activities": info_activities,
-                                       "info_routes": info_routes})
+    # info_activities = elasticsearch.retrieve_general_info_on_activities()
+    # info_routes = elasticsearch.retrieve_general_info_on_routes()
+    #
+    # return templates.TemplateResponse("authenticated_user.html",
+    #                                   {"request": request,
+    #                                    "import_strava": import_strava,
+    #                                    "info_activities": info_activities,
+    #                                    "info_routes": info_routes})
 
 
 #############
@@ -188,14 +188,10 @@ async def strava_token(code: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Missing code param")
     else:
         response_strava = exchange_token(authorization_code)
-        # Athlete
         athlete_ = AdapterAthlete(response_strava).get()
         athlete.repository.save(athlete_)
 
         response = RedirectResponse("/authenticated_user")
-        response.set_cookie(key="access_token", value=athlete_.access_token)
-        response.set_cookie(key="refresh_token", value=athlete_.refresh_token)
-        response.set_cookie(key="token_expires_at", value=str(athlete_.token_expires_at))
-        response.set_cookie(key="user_id", value=str(athlete_.id))
+        response.set_cookie(key="athlete_id", value=str(athlete_.id))
 
         return response

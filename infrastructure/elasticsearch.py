@@ -5,6 +5,7 @@ import elasticsearch
 import jsonpickle
 from elasticsearch import exceptions
 
+from domain.activity import Activity, ActivityRepository
 from domain.athlete import Athlete, AthleteRepository
 from utils.functions import transforms_string_in_datetime
 
@@ -47,27 +48,24 @@ class Elasticsearch:
             )
         return es_object.get('_id')
 
+    def update_data(self, index_name, id_data, body):
+        self.database.update(index=index_name,
+                             id=id_data,
+                             body=body)
+
     def check_if_doc_exists(self, index_name, id_data):
         return self.database.exists(
             index=index_name,
             id=id_data
         )
 
-    def check_match_with_query(self, index_name, query: dict):
-        response = self.database.search(index=index_name, body=query)
-        if response['hits']['total']['value'] == 1:
-            return response['hits']['hits'][0]
+    def search_with_query(self, index_name, query: dict):
+        return self.database.search(index=index_name, body=query)
 
-    def get_doc_by_id(self, index_name, id_data):
-        result = self.database.search(
+    def search_by_id(self, index_name, id_data):
+        return self.database.search(
             index=index_name,
             body={"query": {"match": {"_id": id_data}}})
-
-        if result['hits']['total']['value'] == 0:
-            return None
-        else:
-            doc = result['hits']['hits'][0]['_source']
-            return doc
 
         #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### #### ####
 
@@ -131,30 +129,47 @@ class Elasticsearch:
         except exceptions.NotFoundError:
             return None
 
-    def update_tokens_user(self,
-                           access_token,
-                           refresh_token,
-                           token_expires_at,
-                           user_id):
-        body = {
-            "doc": {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "expires_at": token_expires_at
-            }
-        }
 
-        self.database.update(index="index_user",
-                             id=user_id,
-                             body=body)
-
-
-class ElasticAthleteRepository(AthleteRepository):
-    index = "index-athlete"
+class ElasticActivityRepository(ActivityRepository):
+    #TODO : DEBUG to remove
+    index = "index_activity_test"
 
     def __init__(self):
         self.elastic = Elasticsearch(local_connect=True)
         self.elastic.add_index(self.index)
+
+    def get(self, id_) -> Activity:
+        result = self.elastic.search_by_id(index_name=self.index,
+                                           id_data=id_)
+        activity = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        return activity
+
+    def save(self, activity: Activity):
+        return self.elastic.store_data(
+            data=jsonpickle.encode(activity),
+            index_name=self.index,
+            id_data=activity.id
+        )
+
+    def search_if_exist(self, _id) -> bool:
+        return self.elastic.check_if_doc_exists(
+            index_name=self.index,
+            id_data=_id
+        )
+
+
+class ElasticAthleteRepository(AthleteRepository):
+    index = "index_athlete"
+
+    def __init__(self):
+        self.elastic = Elasticsearch(local_connect=True)
+        self.elastic.add_index(self.index)
+
+    def get(self, id_) -> Athlete:
+        result = self.elastic.search_by_id(index_name=self.index,
+                                           id_data=id_)
+        athlete = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        return athlete
 
     def save(self, athlete: Athlete):
         return self.elastic.store_data(
@@ -163,7 +178,21 @@ class ElasticAthleteRepository(AthleteRepository):
             id_data=athlete.id
         )
 
-    def check_if_exist(self, firstname, lastname) -> Athlete:
+    def update_tokens(self, id_, access_token, refresh_token, token_expires_at):
+        body = {
+            "doc": {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "expires_at": token_expires_at
+            }
+        }
+        self.elastic.update_data(
+            index_name=self.index,
+            id_data=id_,
+            body=body
+        )
+
+    def search_if_exist(self, firstname, lastname) -> Athlete:
         query = {
             "query": {
                 "bool": {
@@ -182,7 +211,7 @@ class ElasticAthleteRepository(AthleteRepository):
                 }
             }
         }
-        result = self.elastic.check_match_with_query(index_name=self.index, query=query)
-        if result is not None:
-            athlete = jsonpickle.decode(read(result.get("_source")))
+        result = self.elastic.search_with_query(index_name=self.index, query=query)
+        if result['hits']['total']['value'] == 1:
+            athlete = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
             return athlete

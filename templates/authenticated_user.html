@@ -17,10 +17,10 @@
             <div id="auth_infos" class="row">
                 <div class="col s11 push-s1">
                     <h2> Infos Auth</h2>
-                    <p> access token : {{ import_strava.access_token }}</p>
-                    <p> refresh_token : {{ import_strava.refresh_token }}</p>
-                    <p> expires_at : {{ import_strava.token_expires_at }}</p>
-                    <p> user_id : {{ import_strava.user_id }}</p>
+                    <p> access token : {{ import_strava.athlete.access_token }}</p>
+                    <p> refresh_token : {{ import_strava.athlete.refresh_token }}</p>
+                    <p> expires_at : {{ import_strava.athlete.token_expires_at }}</p>
+                    <p> user_id : {{ import_strava.athlete.id }}</p>
                 </div>
             </div>
 
