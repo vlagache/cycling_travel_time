@@ -6,8 +6,7 @@ import requests
 from dotenv import load_dotenv
 
 from prediction.domain import athlete, activity
-# DEBUG
-from prediction.infrastructure.elasticsearch import Elasticsearch
+from prediction.infrastructure import adapter_data
 
 
 class ImportStrava:
@@ -134,23 +133,21 @@ class ImportStrava:
         """
         Stores on the database all new activities
         """
-        # TODO : DEBUG to remove
-        elastic = Elasticsearch(local_connect=True)
-
-        #####
         activities_ids_to_added = self.get_new_activities_ids()
         activities_added = 0
         if len(activities_ids_to_added) != 0:
             for activity_id in activities_ids_to_added:
                 # TODO : DEBUG to remove
-                if activities_added > 1:
+                if activities_added == 1:
                     break
                 activity_json = self.get_activity_by_id(activity_id=activity_id)
-                elastic.store_data(
-                    data=activity_json,
-                    index_name='index_activity',
-                    id_data=activity_json['id']
-                )
+                activity_ = adapter_data.AdapterActivity(activity_json).get()
+                activity.repository.save(activity_)
+                # elastic.store_data(
+                #     data=activity_json,
+                #     index_name='index_activity',
+                #     id_data=activity_json['id']
+                # )
                 activities_added += 1
             logging.info(f'{activities_added} activities added to the database')
         return activities_added

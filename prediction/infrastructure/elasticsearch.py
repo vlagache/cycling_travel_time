@@ -3,6 +3,7 @@ import logging
 
 import elasticsearch
 import jsonpickle
+from typing import Optional
 from elasticsearch import exceptions
 
 from prediction.domain.activity import Activity, ActivityRepository
@@ -192,7 +193,7 @@ class ElasticAthleteRepository(AthleteRepository):
             body=body
         )
 
-    def search_if_exist(self, firstname, lastname) -> Athlete:
+    def search_if_exist(self, firstname, lastname) -> Optional[Athlete]:
         query = {
             "query": {
                 "bool": {

@@ -5,8 +5,8 @@ import fitparse
 import numpy as np
 import pandas as pd
 
-from prediction.domain.road import Road
-from prediction.domain.segment import Segment
+from prediction.domain.old_road import Road
+from prediction.domain.old_segment import Segment
 
 
 class RoadTests(unittest.TestCase):

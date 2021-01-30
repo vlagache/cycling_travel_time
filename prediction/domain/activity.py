@@ -1,37 +1,33 @@
 from typing import List
 
-class Segment:
-    def __init__(self, id_: int):
-        self.id = id_
-        self.name
-        self.moving_time
-        self.start_date_local
-        self.distance
-        self.average_cadence
-        self.average_watts
-        self.average_grade
-        self.maximum_grade
-
-
+from prediction.domain.segment import Segment
 
 
 class Activity:
 
-    def __init__(self, id_: int):
+    def __init__(self, id_: int, athlete_id: int, name: str, distance: int,
+                 moving_time: int, elapsed_time: int, total_elevation_gain: int,
+                 type_: str, start_date_local: str, average_speed: int, average_cadence: int,
+                 average_watts: int, max_watts: int, suffer_score: int, calories: int, segment_efforts: List[Segment],
+                 average_heart_rate: int = None, max_heart_rate: int = None):
         self.id = id_
-        self.name
-        self.athlete_id
-        self.distance
-        self.moving_time
-        self.total_elevation_gain
-        self.type
-        self.start_date_local
-        self.average_cadence
-        self.average_watts
-        self.max_watts
-        self.segments_efforts = List[Segment]
-
-
+        self.athlete_id = athlete_id
+        self.name = name
+        self.distance = distance
+        self.moving_time = moving_time
+        self.elapsed_time = elapsed_time
+        self.total_elevation_gain = total_elevation_gain
+        self.type = type_
+        self.start_date_local = start_date_local
+        self.average_speed = average_speed
+        self.average_cadence = average_cadence
+        self.average_watts = average_watts
+        self.max_watts = max_watts
+        self.suffer_score = suffer_score
+        self.calories = calories
+        self.segment_efforts = segment_efforts
+        self.average_heart_rate = average_heart_rate
+        self.max_heart_rate = max_heart_rate
 
 
 class ActivityRepository:

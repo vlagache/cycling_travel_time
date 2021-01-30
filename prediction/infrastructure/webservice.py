@@ -40,7 +40,7 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 async def debug(athlete_id: str = Cookie(None)):
     athlete_ = athlete.repository.get(athlete_id)
     import_strava = ImportStrava(athlete_)
-    # import_strava.storage_of_new_activities()
+    import_strava.storage_of_new_activities()
 
 
 
