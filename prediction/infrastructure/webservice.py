@@ -14,28 +14,23 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from domain import athlete, activity
-from infrastructure.adapter_data import AdapterAthlete
-from infrastructure.elasticsearch import ElasticAthleteRepository, ElasticActivityRepository
-from infrastructure.elasticsearch import Elasticsearch
-from infrastructure.import_strava import ImportStrava
+from prediction.domain import athlete, activity
+from prediction.infrastructure.adapter_data import AdapterAthlete
+from prediction.infrastructure.elasticsearch import ElasticAthleteRepository, ElasticActivityRepository
+from prediction.infrastructure.import_strava import ImportStrava
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s',
-                    datefmt='%d-%b-%y %H:%M:%S',
-                    level=logging.DEBUG)
 
 load_dotenv()
 app = FastAPI()
-elasticsearch = Elasticsearch(local_connect=True)
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 athlete.repository = ElasticAthleteRepository()
 activity.repository = ElasticActivityRepository()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/js", StaticFiles(directory="js"), name="js")
-app.mount("/images", StaticFiles(directory="images"), name="images")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="prediction/infrastructure/static"), name="static")
+app.mount("/js", StaticFiles(directory="prediction/infrastructure/js"), name="js")
+app.mount("/images", StaticFiles(directory="prediction/infrastructure/images"), name="images")
+templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 ################# DEBUG
@@ -45,7 +40,7 @@ templates = Jinja2Templates(directory="templates")
 async def debug(athlete_id: str = Cookie(None)):
     athlete_ = athlete.repository.get(athlete_id)
     import_strava = ImportStrava(athlete_)
-    import_strava.storage_of_new_activities()
+    # import_strava.storage_of_new_activities()
 
 
 

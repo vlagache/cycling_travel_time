@@ -5,8 +5,8 @@ import elasticsearch
 import jsonpickle
 from elasticsearch import exceptions
 
-from domain.activity import Activity, ActivityRepository
-from domain.athlete import Athlete, AthleteRepository
+from prediction.domain.activity import Activity, ActivityRepository
+from prediction.domain.athlete import Athlete, AthleteRepository
 from utils.functions import transforms_string_in_datetime
 
 

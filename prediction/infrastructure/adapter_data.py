@@ -1,4 +1,4 @@
-from domain.athlete import Athlete
+from prediction.domain.athlete import Athlete
 
 
 class AdapterAthlete:

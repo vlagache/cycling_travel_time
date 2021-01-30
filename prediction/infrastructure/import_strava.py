@@ -5,9 +5,9 @@ import time
 import requests
 from dotenv import load_dotenv
 
-from domain import athlete, activity
+from prediction.domain import athlete, activity
 # DEBUG
-from infrastructure.elasticsearch import Elasticsearch
+from prediction.infrastructure.elasticsearch import Elasticsearch
 
 
 class ImportStrava:

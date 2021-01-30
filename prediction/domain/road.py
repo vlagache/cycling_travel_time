@@ -2,7 +2,7 @@ import fitparse
 import numpy as np
 import pandas as pd
 
-from domain.segment import Segment
+from prediction.domain.segment import Segment
 from utils.functions import sign_equal
 
 pd.options.mode.chained_assignment = None  # default='warn'
