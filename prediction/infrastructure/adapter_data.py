@@ -171,10 +171,9 @@ class AdapterActivity:
     def calories(self) -> int:
         return self.data.get("calories")
 
-    # def segment_efforts(self) -> List[Segment]:
-    def segment_efforts(self) -> List:
-        return self.data.get("segment_efforts")
-        # return [AdapterSegment(segment_effort).get() for segment_effort in segments]
+    def segment_efforts(self) -> List[Segment]:
+        segments = self.data.get("segment_efforts")
+        return [AdapterSegment(segment_effort).get() for segment_effort in segments]
 
     def average_heart_rate(self) -> Optional[int]:
         """
