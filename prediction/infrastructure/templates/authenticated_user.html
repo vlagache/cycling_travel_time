@@ -28,21 +28,21 @@
                 <div class="col s11 push-s1">
                 <h2>Activités</h2>
                 {% if info_activities is not none %}
-                    <div id="info_activities">
+                    <div class="info_activities">
                         <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
                         <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
-                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.format_date_last_activity }}</span></p>
+                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></p>
                     </div>
                 {% else %}
-                    <div id="info_when_no_activities">
+                    <div class="info_activities" style="display: none;">
                         <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
                         <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
-                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.format_date_last_activity }}</span></p>
+                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></p>
                     </div>
                     <p class="no_activities"> Aucune activité en base pour le moment...</p>
                 {% endif %}
 
-                <a id="check_activities" class="waves-effect waves-light btn">Update Database</a>
+                <a id="update_activities" class="waves-effect waves-light btn">Update Database</a>
                 <p>
                     <div id="circle_loading" class="preloader-wrapper active">
                         <div class="spinner-layer spinner-red-only">
@@ -64,7 +64,7 @@
                 {% if info_routes is not none %}
                     <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
                     <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                    <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.format_date_last_route}}</span></p>
+                    <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span></p>
                 {% else %}
                     <p> Aucune route en base pour le moment...</p>
                 {% endif %}
@@ -74,8 +74,7 @@
             <div id="to_do" class="row">
                 <div class="col s11 push-s1">
                     <h2>To do</h2>
-                    <p>Faire réelement les updates Activités/Routes avec une route de l'app qui va réelement update</p>
-                    <p> Modifier la logique des cookies ( supprimer ) et récuperer les tokens en base a chaque fois en gardant qu'un seul token_user_id </p>
+                    <p>Faire réelement les updates Routes ( exactement meme chose que Activity)</p>
                     <p>Page suivante ou on choisit la route à prédire ( Back end Segmentation ) </p>
                     <p> Entrainement modele machine learning</p>
                 </div>

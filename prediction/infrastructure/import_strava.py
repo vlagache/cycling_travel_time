@@ -1,28 +1,22 @@
 import logging
 import os.path
 import time
+from typing import List
 
 import requests
 from dotenv import load_dotenv
 
-from prediction.domain import athlete, activity
+from prediction.domain import athlete, activity, route
 from prediction.infrastructure import adapter_data
 
 
 class ImportStrava:
     load_dotenv()
 
-    # def __init__(self, access_token, refresh_token, token_expires_at, user_id, dao: Elasticsearch):
-    #     self.access_token = access_token
-    #     self.refresh_token = refresh_token
-    #     self.token_expires_at = token_expires_at
-    #     self.user_id = user_id
-    #     self.dao = dao
-
     def __init__(self, athlete_: athlete.Athlete):
         self.athlete = athlete_
 
-    def check_if_token_is_valid(self):
+    def check_if_token_is_valid(self) -> bool:
         """
         Checks if the access_token is still valid
         Return True/False
@@ -34,14 +28,14 @@ class ImportStrava:
             logging.info("Token is still valid")
             return True
 
-    def refresh_token_if_not_valid(self):
+    def refresh_token_if_not_valid(self) -> None:
         """
         Refreshes access token if it is no longer valid.
         """
         if not self.check_if_token_is_valid():
             self.refresh_token()
 
-    def refresh_token(self):
+    def refresh_token(self) -> None:
         """
         Send to strava the refresh_token to get a new access_token and a new refresh_token.
         """
@@ -67,7 +61,7 @@ class ImportStrava:
 
     # ACTIVITIES
 
-    def get_all_activities_ids(self):
+    def get_all_activities_ids(self) -> List:
         """
         Recovers all cycling strava activities ids
         Returns the list of the ids of the activities
@@ -92,10 +86,10 @@ class ImportStrava:
             if not strava_request.json():
                 break
 
-            for activity in strava_request.json():
-                if activity['type'] not in mandatory_type_activity:
+            for activity_json in strava_request.json():
+                if activity_json['type'] not in mandatory_type_activity:
                     continue
-                activities_ids.append(activity['id'])
+                activities_ids.append(activity_json['id'])
             page_number += 1
         logging.info(f'Recovery of {len(activities_ids)} activities from Strava')
 
@@ -115,7 +109,7 @@ class ImportStrava:
 
         return activity_json
 
-    def get_new_activities_ids(self):
+    def get_new_activities_ids(self) -> List:
         """
         From the list of all Strava's activities, removing of ones
         that are already in the database so as not to request them again.
@@ -129,25 +123,18 @@ class ImportStrava:
         logging.info(f'{len(activities_ids_to_added)} new activities to be added to the database')
         return activities_ids_to_added
 
-    def storage_of_new_activities(self):
+    def storage_of_new_activities(self) -> int:
         """
         Stores on the database all new activities
+        Return number of activities added for frontend
         """
         activities_ids_to_added = self.get_new_activities_ids()
         activities_added = 0
         if len(activities_ids_to_added) != 0:
             for activity_id in activities_ids_to_added:
-                # TODO : DEBUG to remove
-                if activities_added == 1:
-                    break
                 activity_json = self.get_activity_by_id(activity_id=activity_id)
                 activity_ = adapter_data.AdapterActivity(activity_json).get()
                 activity.repository.save(activity_)
-                # elastic.store_data(
-                #     data=activity_json,
-                #     index_name='index_activity',
-                #     id_data=activity_json['id']
-                # )
                 activities_added += 1
             logging.info(f'{activities_added} activities added to the database')
         return activities_added
@@ -160,7 +147,7 @@ class ImportStrava:
         """
         self.refresh_token_if_not_valid()
         page_number = 1
-        routes_number = 0
+        routes_added = 0
         while True:
             strava_request = requests.get(
                 f'https://www.strava.com/api/v3/athletes/{self.athlete.id}/routes',
@@ -175,20 +162,17 @@ class ImportStrava:
             if not strava_request.json():
                 break
 
-            for route in strava_request.json():
-                gpx_file = self.get_route_gpx(route['id'])
-                route['gpx_file'] = gpx_file
-                self.dao.store_data(
-                    data_json=route,
-                    index_name='index_route',
-                    id_data=route['id']
-                )
-                routes_number += 1
+            for route_json in strava_request.json():
+                gpx = self.get_route_gpx(route_json['id'])
+                route_json['gpx'] = gpx
+                route_ = adapter_data.AdapterRoute(route_json).get()
+                route.repository.save(route_)
+                routes_added += 1
             page_number += 1
 
-        logging.info(f'{routes_number} routes added to the database')
+        logging.info(f'{routes_added} routes added to the database')
 
-    def get_route_gpx(self, route_id):
+    def get_route_gpx(self, route_id) -> str:
         """
         Retrieve a gpx file of a route from its id
         """
@@ -198,5 +182,5 @@ class ImportStrava:
                 'Authorization': f'Bearer {self.athlete.access_token}'
             }
         )
-        gpx_file = strava_request.text
-        return gpx_file
+        gpx = strava_request.text
+        return gpx

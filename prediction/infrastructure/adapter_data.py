@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from prediction.domain.activity import Activity
 from prediction.domain.athlete import Athlete
+from prediction.domain.route import Route
 from prediction.domain.segment import Segment
 
 
@@ -209,4 +210,50 @@ class AdapterActivity:
             segment_efforts=self.segment_efforts(),
             average_heart_rate=self.average_heart_rate(),
             max_heart_rate=self.max_heart_rate()
+        )
+
+
+class AdapterRoute:
+
+    def __init__(self, data: dict):
+        self.data = data
+
+    def id(self) -> int:
+        return self.data.get("id_str")
+
+    def athlete_id(self) -> int:
+        return self.data.get("athlete").get("id")
+
+    def description(self) -> str:
+        return self.data.get("description")
+
+    def distance(self) -> int:
+        return self.data.get("distance")
+
+    def elevation_gain(self) -> int:
+        return self.data.get("elevation_gain")
+
+    def name(self) -> str:
+        return self.data.get("name")
+
+    def created_at(self) -> str:
+        return self.data.get("created_at")
+
+    def estimated_moving_time(self) -> int:
+        return self.data.get("estimated_moving_time")
+
+    def gpx(self) -> str:
+        return self.data.get("gpx")
+
+    def get(self) -> Route:
+        return Route(
+            id_=self.id(),
+            athlete_id=self.athlete_id(),
+            description=self.description(),
+            distance=self.distance(),
+            elevation_gain=self.elevation_gain(),
+            name=self.name(),
+            created_at=self.created_at(),
+            estimated_moving_time=self.estimated_moving_time(),
+            gpx=self.gpx()
         )

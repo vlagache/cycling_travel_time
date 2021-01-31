@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from prediction.domain.segment import Segment
 
@@ -32,7 +32,24 @@ class Activity:
 
 class ActivityRepository:
 
+    def is_empty(self) -> bool:
+        raise NotImplementedError()
+
     def get(self, id_) -> Activity:
+        raise NotImplementedError()
+
+    def get_all_desc(self) -> List[Activity]:
+        """
+        all activities in desc order
+        """
+        raise NotImplementedError()
+
+    def get_general_info(self) -> Optional[dict]:
+        """
+        Returns the number of activities in base, the name and
+        time of the last one
+        Or None if the index is empty
+        """
         raise NotImplementedError()
 
     def save(self, activity: Activity):

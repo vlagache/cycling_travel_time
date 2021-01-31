@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 import urllib.parse
@@ -14,11 +13,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from prediction.domain import athlete, activity
+from prediction.domain import athlete, activity, route
 from prediction.infrastructure.adapter_data import AdapterAthlete
-from prediction.infrastructure.elasticsearch import ElasticAthleteRepository, ElasticActivityRepository
+from prediction.infrastructure.elasticsearch import \
+    ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository
 from prediction.infrastructure.import_strava import ImportStrava
-
 
 load_dotenv()
 app = FastAPI()
@@ -26,6 +25,7 @@ LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 athlete.repository = ElasticAthleteRepository()
 activity.repository = ElasticActivityRepository()
+route.repository = ElasticRouteRepository()
 
 app.mount("/static", StaticFiles(directory="prediction/infrastructure/static"), name="static")
 app.mount("/js", StaticFiles(directory="prediction/infrastructure/js"), name="js")
@@ -37,34 +37,21 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 @app.get("/debug")
-async def debug(athlete_id: str = Cookie(None)):
-    athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
-    import_strava.storage_of_new_activities()
-
-
-
+async def debug():
+    return activity.repository.get_general_info()
 
 
 @app.get("/route")
-async def route(access_token: str = Cookie(None),
-                refresh_token: str = Cookie(None),
-                token_expires_at: str = Cookie(None),
-                user_id: str = Cookie(None)):
-    import_strava = ImportStrava(access_token=str(access_token),
-                                 refresh_token=str(refresh_token),
-                                 token_expires_at=int(token_expires_at),
-                                 user_id=str(user_id),
-                                 dao=elasticsearch)
-
+async def route_debug(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
     return import_strava.store_all_routes_athlete()
 
 
 @app.get("/get_route")
-async def get_route():
-    route_test = elasticsearch.get_doc_by_id(index_name="index_route",
-                                             id_data=2787335981548134218)
-    gpx = gpxpy.parse(route_test['gpx_file'])
+async def get_route_debug():
+    route_ = route.repository.get(2787335981548134218)
+    gpx = gpxpy.parse(route_.gpx)
     data = []
     for track in gpx.tracks:
         for segment in track.segments:
@@ -108,33 +95,24 @@ async def authenticated_user(request: Request,
     time.sleep(1)
     athlete_ = athlete.repository.get(athlete_id)
     import_strava = ImportStrava(athlete_)
-    print(import_strava.get_new_activities_ids())
+    info_activities = activity.repository.get_general_info()
+    info_routes = route.repository.get_general_info()
 
-    # info_activities = elasticsearch.retrieve_general_info_on_activities()
-    # info_routes = elasticsearch.retrieve_general_info_on_routes()
-    #
-    # return templates.TemplateResponse("authenticated_user.html",
-    #                                   {"request": request,
-    #                                    "import_strava": import_strava,
-    #                                    "info_activities": info_activities,
-    #                                    "info_routes": info_routes})
+    return templates.TemplateResponse("authenticated_user.html",
+                                      {"request": request,
+                                       "import_strava": import_strava,
+                                       "info_activities": info_activities,
+                                       "info_routes": info_routes})
 
 
 #############
 
 @app.get("/get_new_activities")
-async def get_new_activities(access_token: str = Cookie(None),
-                             refresh_token: str = Cookie(None),
-                             token_expires_at: str = Cookie(None),
-                             user_id: str = Cookie(None)):
-    import_strava = ImportStrava(access_token=str(access_token),
-                                 refresh_token=str(refresh_token),
-                                 token_expires_at=int(token_expires_at),
-                                 user_id=str(user_id),
-                                 dao=elasticsearch)
-
+async def get_new_activities(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
     activities_added = import_strava.storage_of_new_activities()
-    info_activities = elasticsearch.retrieve_general_info_on_activities()
+    info_activities = activity.repository.get_general_info()
     info_activities['activities_added'] = activities_added
     return info_activities
 
