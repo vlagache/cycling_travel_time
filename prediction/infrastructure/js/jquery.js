@@ -7,6 +7,7 @@ jQuery(document).ready(function(){
     $(document).ajaxStop(function(){
         // reactivation of the button
         $('#update_activities').removeClass('disabled')
+        $('#update_routes').removeClass('disabled')
 
         $("#circle_loading").hide()
 
@@ -14,8 +15,12 @@ jQuery(document).ready(function(){
         $(".info_activities").show()
         $(".no_activities").hide()
 
+        $(".info_routes").show()
+        $(".no_routes").hide()
+
     })
 
+//    Update Activities
 
     $('#update_activities').on( 'click', function(e){
         $('#update_activities').addClass('disabled')
@@ -35,4 +40,27 @@ jQuery(document).ready(function(){
             }
         })
     });
+
+//    Update Routes
+
+    $('#update_routes').on( 'click', function(e){
+        $('#update_routes').addClass('disabled')
+        $('.no_new_routes').css("display", "none")
+        e.preventDefault();
+        let options = {
+            method:'GET',
+            url: '/get_new_routes'
+        }
+        $.ajax(options).done(response => {
+            if(response.routes_added > 0){
+                $(".routes_in_base").text(response.routes_in_base)
+                $(".name_last_route").text(response.name_last_route)
+                $(".date_last_route").text(response.date_last_route)
+            } else {
+                $("<p class='no_new_routes'> Aucune nouvelle route à charger </p>").insertAfter("#update_routes")
+            }
+        })
+    });
+
+    $('select').select();
 })

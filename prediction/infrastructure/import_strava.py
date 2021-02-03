@@ -1,7 +1,7 @@
 import logging
 import os.path
 import time
-from typing import List
+from typing import List, Dict
 
 import requests
 from dotenv import load_dotenv
@@ -54,6 +54,9 @@ class ImportStrava:
         self.athlete.refresh_token = strava_request.json()['refresh_token']
         self.athlete.token_expires_at = strava_request.json()['expires_at']
 
+        # TODO: Ca fonctionne pas on dirait
+        # N'a pas l'air de mettre a jour la base avec les nouveaux tokens
+        #
         athlete.repository.update_tokens(id_=self.athlete.id,
                                          access_token=self.athlete.access_token,
                                          refresh_token=self.athlete.refresh_token,
@@ -87,15 +90,15 @@ class ImportStrava:
                 break
 
             for activity_json in strava_request.json():
-                if activity_json['type'] not in mandatory_type_activity:
-                    continue
-                activities_ids.append(activity_json['id'])
+                if activity_json['type'] in mandatory_type_activity:
+                    activities_ids.append(activity_json['id'])
+
             page_number += 1
         logging.info(f'Recovery of {len(activities_ids)} activities from Strava')
 
         return activities_ids
 
-    def get_activity_by_id(self, activity_id):
+    def get_activity_by_id(self, activity_id: int) -> Dict:
         """
         retrieve all the information of an activity on Strava
         """
@@ -141,7 +144,84 @@ class ImportStrava:
 
     # ROUTES
 
-    def store_all_routes_athlete(self):
+    def get_all_routes_ids(self) -> List:
+        """
+          Recovers all strava routes ids
+          Returns the list of the ids of routes
+        """
+        self.refresh_token_if_not_valid()
+        page_number = 1
+        routes_ids = []
+        while True:
+            strava_request = requests.get(
+                f'https://www.strava.com/api/v3/athletes/{self.athlete.id}/routes',
+                params={
+                    'per_page': 200,
+                    'page': page_number
+                },
+                headers={
+                    'Authorization': f'Bearer {self.athlete.access_token}'
+                }
+            )
+            if not strava_request.json():
+                break
+
+            for route_json in strava_request.json():
+                routes_ids.append(route_json['id'])
+
+            page_number += 1
+
+        logging.info(f'Recovery of {len(routes_ids)} routes from Strava')
+        return routes_ids
+
+    def get_route_by_id(self, route_id: int) -> Dict:
+        """
+        retrieve all the information of a route on Strava
+        """
+
+        strava_request = requests.get(
+            f'https://www.strava.com/api/v3/routes/{route_id}',
+            headers={
+                'Authorization': f'Bearer {self.athlete.access_token}'
+            }
+        )
+        activity_json = strava_request.json()
+
+        return activity_json
+
+    def get_new_routes_ids(self) -> List:
+        """
+        From the list of all Strava's routes, removing of ones
+        that are already in the database so as not to request them again.
+        Returns ids of routes to be added
+        """
+        routes_ids = self.get_all_routes_ids()
+        routes_ids_to_added = [
+            route_id for route_id in routes_ids
+            if not route.repository.search_if_exist(_id=route_id)
+        ]
+        logging.info(f'{len(routes_ids_to_added)} new routes to be added to the database')
+        return routes_ids_to_added
+
+    def storage_of_new_routes(self) -> int:
+        """
+        Stores on the database all new routes
+        Return number of routes added for frontend
+        """
+        routes_ids_to_added = self.get_new_routes_ids()
+        routes_added = 0
+        if len(routes_ids_to_added) != 0:
+            for route_id in routes_ids_to_added:
+                route_json = self.get_route_by_id(route_id=route_id)
+                gpx = self.get_route_gpx(route_id=route_id)
+                route_json['gpx'] = gpx
+                route_ = adapter_data.AdapterRoute(route_json).get()
+                route.repository.save(route_)
+                routes_added += 1
+            logging.info(f'{routes_added} routes added to the database')
+        return routes_added
+
+    def store_all_routes_athlete(self) -> None:
         """
         Stores all the athlete's routes on Elasticsearch together with the gpx file
         """

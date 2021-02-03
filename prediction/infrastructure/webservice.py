@@ -37,8 +37,10 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 @app.get("/debug")
-async def debug():
-    return activity.repository.get_general_info()
+async def debug(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
+    return import_strava.storage_of_new_routes()
 
 
 @app.get("/route")
@@ -115,6 +117,16 @@ async def get_new_activities(athlete_id: str = Cookie(None)):
     info_activities = activity.repository.get_general_info()
     info_activities['activities_added'] = activities_added
     return info_activities
+
+
+@app.get("/get_new_routes")
+async def get_new_routes(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
+    routes_added = import_strava.storage_of_new_routes()
+    info_routes = route.repository.get_general_info()
+    info_routes['routes_added'] = routes_added
+    return info_routes
 
 
 ############

@@ -41,5 +41,8 @@ class RouteRepository:
     def save(self, route: Route):
         raise NotImplementedError()
 
+    def search_if_exist(self, _id) -> bool:
+        raise NotImplementedError()
+
 
 repository: RouteRepository

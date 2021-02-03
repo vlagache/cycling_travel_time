@@ -262,3 +262,9 @@ class ElasticRouteRepository(RouteRepository):
             index_name=self.index,
             id_data=route.id
         )
+
+    def search_if_exist(self, _id) -> bool:
+        return self.elastic.check_if_doc_exists(
+            index_name=self.index,
+            id_data=_id
+        )

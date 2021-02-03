@@ -1,104 +1,154 @@
-
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Pente Simulator Reboot Touchy By Design</title>
-        <!--Import Google Icon Font-->
-          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
-            <!-- Compiled and minified CSS -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    </head>
-    <body>
-        
-        <div class="container">
+<head>
+    <title>Pente Simulator Reboot Touchy By Design</title>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+
+<div class="container">
 
 
-            <div id="auth_infos" class="row">
-                <div class="col s11 push-s1">
-                    <h2> Infos Auth</h2>
-                    <p> access token : {{ import_strava.athlete.access_token }}</p>
-                    <p> refresh_token : {{ import_strava.athlete.refresh_token }}</p>
-                    <p> expires_at : {{ import_strava.athlete.token_expires_at }}</p>
-                    <p> user_id : {{ import_strava.athlete.id }}</p>
-                </div>
-            </div>
+    <div id="auth_infos" class="row">
+        <div class="col s11 push-s1">
+            <h2> Infos Auth</h2>
+            <p> access token : {{ import_strava.athlete.access_token }}</p>
+            <p> refresh_token : {{ import_strava.athlete.refresh_token }}</p>
+            <p> expires_at : {{ import_strava.athlete.token_expires_at }}</p>
+            <p> user_id : {{ import_strava.athlete.id }}</p>
+        </div>
+    </div>
 
-            <div id="database_infos" class="row">
-                <div class="col s11 push-s1">
-                <h2>Activités</h2>
-                {% if info_activities is not none %}
-                    <div class="info_activities">
-                        <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
-                        <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
-                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></p>
-                    </div>
-                {% else %}
-                    <div class="info_activities" style="display: none;">
-                        <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></p>
-                        <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></p>
-                        <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></p>
-                    </div>
-                    <p class="no_activities"> Aucune activité en base pour le moment...</p>
-                {% endif %}
 
-                <a id="update_activities" class="waves-effect waves-light btn">Update Database</a>
-                <p>
-                    <div id="circle_loading" class="preloader-wrapper active">
-                        <div class="spinner-layer spinner-red-only">
-                            <div class="circle-clipper left">
-                            <div class="circle"></div>
-                            </div><div class="gap-patch">
-                            <div class="circle"></div>
-                            </div><div class="circle-clipper right">
-                            <div class="circle"></div>
-                            </div>
-                        </div>
-                    </div>
+    <div id="database_infos" class="row">
+        <div class="col s11 push-s1">
+
+            <h2>Activités</h2>
+
+            {% if info_activities is not none %}
+            <div class="info_activities">
+                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>
+                </p>
+                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>
+                </p>
+                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>
                 </p>
             </div>
-
-            <div id="routes" class="row">
-                <div class="col s11 push-s1">
-                <h2>Routes</h2>
-                {% if info_routes is not none %}
-                    <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
-                    <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                    <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span></p>
-                {% else %}
-                    <p> Aucune route en base pour le moment...</p>
-                {% endif %}
-                </div>
+            {% else %}
+            <div class="info_activities" style="display: none;">
+                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>
+                </p>
+                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>
+                </p>
+                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>
+                </p>
             </div>
+            <p class="no_activities"> Aucune activité en base pour le moment...</p>
+            {% endif %}
 
-            <div id="to_do" class="row">
-                <div class="col s11 push-s1">
-                    <h2>To do</h2>
-                    <p>Faire réelement les updates Routes ( exactement meme chose que Activity)</p>
-                    <p>Page suivante ou on choisit la route à prédire ( Back end Segmentation ) </p>
-                    <p> Entrainement modele machine learning</p>
-                </div>
+            <a id="update_activities" class="waves-effect waves-light btn">Update Activities</a>
+        </div>
+    </div>
+
+    <div id="routes" class="row">
+        <div class="col s11 push-s1">
+
+            <h2>Routes</h2>
+
+            {% if info_routes is not none %}
+            <div class="info_routes">
+                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
+                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
+                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>
+                </p>
             </div>
-
-            <div id="other" class="row">
-                <div class="col s11 push-s1">
-                    <p>
-                        <a class="btn" href="/authenticated_user">Refresh</a>
-                    </p>
-                </div>
+            {% else %}
+            <div class="info_routes" style="display :none;">
+                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
+                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
+                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>
+                </p>
             </div>
+            <p class="no_routes"> Aucune route en base pour le moment...</p>
+            {% endif %}
 
-        
+            <a id="update_routes" class="waves-effect waves-light btn">Update Routes</a>
 
         </div>
+    </div>
 
-        <p class="pwdstrava">
-            <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
-        </p>
+    <div id="circle_loading" class="preloader-wrapper active center-align">
+        <div class="spinner-layer spinner-red-only">
+            <div class="circle-clipper left">
+                <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+                <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Compiled and minified JavaScript -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="js/jquery.js"></script>
-    </body>
+    <div id="routes_segmentation" class="row">
+        <div class="col s11 push-s1">
+
+            <h2>Routes Segmentation</h2>
+
+            <div class="input-field col s12">
+                <select>
+                    <option value="" disabled selected>Choose your option</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+                <label>Materialize Select</label>
+            </div>
+
+            <a id="segmentation" class="waves-effect waves-light btn">Segmentation</a>
+
+        </div>
+    </div>
+
+
+    <div id="to_do" class="row">
+        <div class="col s11 push-s1">
+            <h2>To do</h2>
+            <p>Page suivante ou on choisit la route à prédire ( Back end Segmentation ) </p>
+            <p> Entrainement modele machine learning ( Back End entrainement sur les Segments et Prediction sur la route
+                segmentée)</p>
+        </div>
+    </div>
+
+    <div id="other" class="row">
+        <div class="col s11 push-s1">
+            <p>
+                <a class="btn" href="/authenticated_user">Refresh</a>
+            </p>
+        </div>
+    </div>
+
+
+</div>
+
+<p class="pwdstrava">
+    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
+</p>
+
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="js/jquery.js"></script>
+<script>M.AutoInit();</script>
+
+
+
+
+</body>
 </html>
