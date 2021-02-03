@@ -221,37 +221,6 @@ class ImportStrava:
             logging.info(f'{routes_added} routes added to the database')
         return routes_added
 
-    def store_all_routes_athlete(self) -> None:
-        """
-        Stores all the athlete's routes on Elasticsearch together with the gpx file
-        """
-        self.refresh_token_if_not_valid()
-        page_number = 1
-        routes_added = 0
-        while True:
-            strava_request = requests.get(
-                f'https://www.strava.com/api/v3/athletes/{self.athlete.id}/routes',
-                params={
-                    'per_page': 200,
-                    'page': page_number
-                },
-                headers={
-                    'Authorization': f'Bearer {self.athlete.access_token}'
-                }
-            )
-            if not strava_request.json():
-                break
-
-            for route_json in strava_request.json():
-                gpx = self.get_route_gpx(route_json['id'])
-                route_json['gpx'] = gpx
-                route_ = adapter_data.AdapterRoute(route_json).get()
-                route.repository.save(route_)
-                routes_added += 1
-            page_number += 1
-
-        logging.info(f'{routes_added} routes added to the database')
-
     def get_route_gpx(self, route_id) -> str:
         """
         Retrieve a gpx file of a route from its id
