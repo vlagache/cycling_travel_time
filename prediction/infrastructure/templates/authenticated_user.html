@@ -100,14 +100,17 @@
 
             <h2>Routes Segmentation</h2>
 
+
             <div class="input-field col s12">
-                <select>
-                    <option value="" disabled selected>Choose your option</option>
-                    <option value="1">Option 1</option>
-                    <option value="2">Option 2</option>
-                    <option value="3">Option 3</option>
+                <select id="route_choice">
+                    <option value="" disabled selected>Choisir la route à prédire</option>
+                    {% for route in routes %}
+                        <option value="{{route.id}}">
+                            {{route.name}} -  Distance : {{ (route.distance/1000)|round(2) }} km
+                        </option>
+                    {% endfor %}
                 </select>
-                <label>Materialize Select</label>
+                <label> Route Select</label>
             </div>
 
             <a id="segmentation" class="waves-effect waves-light btn">Segmentation</a>
@@ -119,7 +122,8 @@
     <div id="to_do" class="row">
         <div class="col s11 push-s1">
             <h2>To do</h2>
-            <p>Page suivante ou on choisit la route à prédire ( Back end Segmentation ) </p>
+            <p> Mettre le menu pour selectionner la route sur une autre page , le click sur le bouton requete en post une route...</p>
+            <p> Segmentation de la route choisie afin de faire une prédictions sur chacun des segments</p>
             <p> Entrainement modele machine learning ( Back End entrainement sur les Segments et Prediction sur la route
                 segmentée)</p>
         </div>

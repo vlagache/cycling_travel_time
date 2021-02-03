@@ -62,5 +62,10 @@ jQuery(document).ready(function(){
         })
     });
 
-    $('select').select();
+//    Select Routes
+     $('select').select();
+
+     $('#segmentation').on( 'click', function(e){
+        console.log($('#route_choice option:selected').val());
+     });
 })

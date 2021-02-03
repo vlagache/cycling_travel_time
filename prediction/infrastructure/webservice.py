@@ -37,10 +37,11 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 @app.get("/debug")
-async def debug(athlete_id: str = Cookie(None)):
-    athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
-    return import_strava.storage_of_new_routes()
+async def debug():
+    return route.repository.get_all_desc()
+    ## ALL routes
+    ## Formatage
+
 
 
 @app.get("/route")
@@ -99,12 +100,14 @@ async def authenticated_user(request: Request,
     import_strava = ImportStrava(athlete_)
     info_activities = activity.repository.get_general_info()
     info_routes = route.repository.get_general_info()
+    routes = route.repository.get_all_desc()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
                                        "import_strava": import_strava,
                                        "info_activities": info_activities,
-                                       "info_routes": info_routes})
+                                       "info_routes": info_routes,
+                                       "routes": routes})
 
 
 #############
