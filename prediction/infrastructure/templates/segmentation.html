@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+
+
+<div class="container">
+    <div id="routes_segmentation" class="row">
+        <div class="col s11 push-s1">
+
+            <h2>Routes Segmentation</h2>
+
+            <div class="row">
+                <div class="input-field col s7">
+                    <select id="route_choice">
+                        <option value="" disabled selected>Choisir la route à prédire</option>
+                        {% for route in routes %}
+                        <option value="{{route.id}}">
+                            {{route.name}} - Distance : {{ (route.distance/1000)|round(2) }} km
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <label> Route Select</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <p>
+                    - Click segmentation
+                    - Appel d'une route avec l'id de la route en param
+                    - Segmentation
+                    - Stockage de la segmentation dans l'objet en base pour ne plus le faire à l'avenir ?
+                </p>
+            </div>
+            <div class="row">
+                <a id="segmentation" class="waves-effect waves-light btn orange darken-4">Segmentation</a>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+<p class="pwdstrava">
+    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
+</p>
+
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="js/jquery.js"></script>
+<script>M.AutoInit();</script>
+</body>
+</html>

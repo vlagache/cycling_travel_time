@@ -168,7 +168,7 @@ class ElasticAthleteRepository(AthleteRepository):
             "doc": {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
-                "expires_at": token_expires_at
+                "token_expires_at": token_expires_at
             }
         }
         self.elastic.update_data(

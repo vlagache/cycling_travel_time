@@ -2,6 +2,7 @@ import os
 import time
 import urllib.parse
 from typing import Optional
+import logging
 
 import gpxpy
 import pandas as pd
@@ -37,11 +38,9 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 @app.get("/debug")
-async def debug():
-    return route.repository.get_all_desc()
-    ## ALL routes
-    ## Formatage
-
+async def debug(athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
+    import_strava = ImportStrava(athlete_)
 
 
 @app.get("/route")
@@ -100,14 +99,20 @@ async def authenticated_user(request: Request,
     import_strava = ImportStrava(athlete_)
     info_activities = activity.repository.get_general_info()
     info_routes = route.repository.get_general_info()
-    routes = route.repository.get_all_desc()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
                                        "import_strava": import_strava,
                                        "info_activities": info_activities,
-                                       "info_routes": info_routes,
-                                       "routes": routes})
+                                       "info_routes": info_routes})
+
+
+@app.get("/segmentation", response_class=HTMLResponse)
+async def main(request: Request):
+
+    routes = route.repository.get_all_desc()
+    return templates.TemplateResponse("segmentation.html", {"request": request,
+                                                            "routes": routes})
 
 
 #############

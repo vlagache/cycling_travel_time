@@ -15,6 +15,7 @@ class ImportStrava:
 
     def __init__(self, athlete_: athlete.Athlete):
         self.athlete = athlete_
+        self.refresh_token_if_not_valid()
 
     def check_if_token_is_valid(self) -> bool:
         """
@@ -50,13 +51,11 @@ class ImportStrava:
             }
         )
 
+        logging.debug(strava_request.json())
         self.athlete.access_token = strava_request.json()['access_token']
         self.athlete.refresh_token = strava_request.json()['refresh_token']
         self.athlete.token_expires_at = strava_request.json()['expires_at']
 
-        # TODO: Ca fonctionne pas on dirait
-        # N'a pas l'air de mettre a jour la base avec les nouveaux tokens
-        #
         athlete.repository.update_tokens(id_=self.athlete.id,
                                          access_token=self.athlete.access_token,
                                          refresh_token=self.athlete.refresh_token,
@@ -69,8 +68,6 @@ class ImportStrava:
         Recovers all cycling strava activities ids
         Returns the list of the ids of the activities
         """
-
-        self.refresh_token_if_not_valid()
 
         mandatory_type_activity = ['VirtualRide', 'Ride']
         page_number = 1
@@ -149,7 +146,6 @@ class ImportStrava:
           Recovers all strava routes ids
           Returns the list of the ids of routes
         """
-        self.refresh_token_if_not_valid()
         page_number = 1
         routes_ids = []
         while True:

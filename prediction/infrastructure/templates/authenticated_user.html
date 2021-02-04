@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <title>Pente Simulator Reboot Touchy By Design</title>
     <!--Import Google Icon Font-->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -50,7 +51,7 @@
             <p class="no_activities"> Aucune activité en base pour le moment...</p>
             {% endif %}
 
-            <a id="update_activities" class="waves-effect waves-light btn">Update Activities</a>
+            <a id="update_activities" class="waves-effect waves-light btn orange darken-4">Update Activities</a>
         </div>
     </div>
 
@@ -76,7 +77,7 @@
             <p class="no_routes"> Aucune route en base pour le moment...</p>
             {% endif %}
 
-            <a id="update_routes" class="waves-effect waves-light btn">Update Routes</a>
+            <a id="update_routes" class="waves-effect waves-light btn orange darken-4">Update Routes</a>
 
         </div>
     </div>
@@ -95,34 +96,12 @@
         </div>
     </div>
 
-    <div id="routes_segmentation" class="row">
-        <div class="col s11 push-s1">
-
-            <h2>Routes Segmentation</h2>
-
-
-            <div class="input-field col s12">
-                <select id="route_choice">
-                    <option value="" disabled selected>Choisir la route à prédire</option>
-                    {% for route in routes %}
-                        <option value="{{route.id}}">
-                            {{route.name}} -  Distance : {{ (route.distance/1000)|round(2) }} km
-                        </option>
-                    {% endfor %}
-                </select>
-                <label> Route Select</label>
-            </div>
-
-            <a id="segmentation" class="waves-effect waves-light btn">Segmentation</a>
-
-        </div>
-    </div>
-
 
     <div id="to_do" class="row">
         <div class="col s11 push-s1">
             <h2>To do</h2>
-            <p> Mettre le menu pour selectionner la route sur une autre page , le click sur le bouton requete en post une route...</p>
+            <p> Mettre le menu pour selectionner la route sur une autre page , le click sur le bouton requete en post
+                une route...</p>
             <p> Segmentation de la route choisie afin de faire une prédictions sur chacun des segments</p>
             <p> Entrainement modele machine learning ( Back End entrainement sur les Segments et Prediction sur la route
                 segmentée)</p>
@@ -132,7 +111,7 @@
     <div id="other" class="row">
         <div class="col s11 push-s1">
             <p>
-                <a class="btn" href="/authenticated_user">Refresh</a>
+                <a class="btn orange darken-4" href="/segmentation">Segmentation</a>
             </p>
         </div>
     </div>
@@ -150,8 +129,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="js/jquery.js"></script>
 <script>M.AutoInit();</script>
-
-
 
 
 </body>
