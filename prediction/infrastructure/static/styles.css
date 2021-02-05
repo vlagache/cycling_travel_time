@@ -21,3 +21,8 @@ body {
   position:absolute;
   right:50%;
 }
+
+#map{
+    width:600px;
+    height:600px;
+}

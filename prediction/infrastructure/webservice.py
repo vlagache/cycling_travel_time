@@ -2,7 +2,11 @@ import os
 import time
 import urllib.parse
 from typing import Optional
+import gpxpy
 
+gpxpy.parse().get_uphill_downhill()
+
+import folium
 import pandas as pd
 import requests
 from dotenv import load_dotenv
@@ -10,6 +14,7 @@ from fastapi import FastAPI, HTTPException, Request, Cookie, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from folium import plugins
 from starlette.responses import RedirectResponse
 
 from prediction.domain import athlete, activity, route
@@ -17,7 +22,8 @@ from prediction.infrastructure.adapter_data import AdapterAthlete
 from prediction.infrastructure.elasticsearch import \
     ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository
 from prediction.infrastructure.import_strava import ImportStrava
-from utils.functions import gpx_parser
+
+# DEBUG
 
 load_dotenv()
 app = FastAPI()
@@ -36,21 +42,41 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 ################# DEBUG
 
 
-@app.get("/debug")
-async def debug(athlete_id: str = Cookie(None)):
-    athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
-    route_ = route.repository.get(2787335981548134218)
-    test = gpx_parser(route_.gpx)
-    elevation = [point.get("elevation") for point in test]
-    return elevation
+@app.get("/map", response_class=HTMLResponse)
+async def map_render(request: Request):
+    route_ = route.repository.get(2792090948410420572)
+    # route_ = route.repository.get(2787335981548134218)
 
+    df = pd.DataFrame(route_.gpx)
 
-@app.get("/route")
-async def route_debug(athlete_id: str = Cookie(None)):
-    athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
-    return import_strava.store_all_routes_athlete()
+    # middle point
+    middle = round(df.shape[0] / 2)
+    middle_point = [df.loc[middle]['latitude'], df.loc[middle]['longitude']]
+
+    # all points
+    points = [[point[0], point[1]] for point in df.values]
+
+    # Folium Map
+    m = folium.Map(
+        location=middle_point,
+        zoom_start=12
+    )
+
+    folium.plugins.AntPath(
+        locations=points,
+        dash_array=[10, 35],
+        color="red",
+        pulse_color="black",
+        weight=5,
+        delay=800,
+
+    ).add_to(m)
+
+    m.fit_bounds(m.get_bounds())
+
+    map_html = m._repr_html_()
+    return templates.TemplateResponse("map_test.html", {"request": request,
+                                                        "map_test": map_html})
 
 
 @app.get("/get_route")
