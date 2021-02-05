@@ -51,15 +51,11 @@ class ImportStrava:
             }
         )
 
-        logging.debug(strava_request.json())
         self.athlete.access_token = strava_request.json()['access_token']
         self.athlete.refresh_token = strava_request.json()['refresh_token']
         self.athlete.token_expires_at = strava_request.json()['expires_at']
 
-        athlete.repository.update_tokens(id_=self.athlete.id,
-                                         access_token=self.athlete.access_token,
-                                         refresh_token=self.athlete.refresh_token,
-                                         token_expires_at=self.athlete.token_expires_at)
+        athlete.repository.save(self.athlete)
 
     # ACTIVITIES
 

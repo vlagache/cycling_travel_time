@@ -163,20 +163,6 @@ class ElasticAthleteRepository(AthleteRepository):
             id_data=athlete.id
         )
 
-    def update_tokens(self, id_, access_token, refresh_token, token_expires_at):
-        body = {
-            "doc": {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "token_expires_at": token_expires_at
-            }
-        }
-        self.elastic.update_data(
-            index_name=self.index,
-            id_data=id_,
-            body=body
-        )
-
     def search_if_exist(self, firstname, lastname) -> Optional[Athlete]:
         query = {
             "query": {
