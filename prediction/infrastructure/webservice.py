@@ -2,9 +2,7 @@ import os
 import time
 import urllib.parse
 from typing import Optional
-import logging
 
-import gpxpy
 import pandas as pd
 import requests
 from dotenv import load_dotenv
@@ -19,6 +17,7 @@ from prediction.infrastructure.adapter_data import AdapterAthlete
 from prediction.infrastructure.elasticsearch import \
     ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository
 from prediction.infrastructure.import_strava import ImportStrava
+from utils.functions import gpx_parser
 
 load_dotenv()
 app = FastAPI()
@@ -41,6 +40,10 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 async def debug(athlete_id: str = Cookie(None)):
     athlete_ = athlete.repository.get(athlete_id)
     import_strava = ImportStrava(athlete_)
+    route_ = route.repository.get(2787335981548134218)
+    test = gpx_parser(route_.gpx)
+    elevation = [point.get("elevation") for point in test]
+    return elevation
 
 
 @app.get("/route")
@@ -109,7 +112,6 @@ async def authenticated_user(request: Request,
 
 @app.get("/segmentation", response_class=HTMLResponse)
 async def main(request: Request):
-
     routes = route.repository.get_all_desc()
     return templates.TemplateResponse("segmentation.html", {"request": request,
                                                             "routes": routes})
