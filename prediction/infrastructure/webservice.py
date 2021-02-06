@@ -2,9 +2,6 @@ import os
 import time
 import urllib.parse
 from typing import Optional
-import gpxpy
-
-gpxpy.parse().get_uphill_downhill()
 
 import folium
 import pandas as pd
@@ -163,6 +160,13 @@ async def get_new_routes(athlete_id: str = Cookie(None)):
     info_routes = route.repository.get_general_info()
     info_routes['routes_added'] = routes_added
     return info_routes
+
+
+@app.get("/get_map")
+async def get_map(route_id: int):
+    route_ = route.repository.get(route_id)
+    return route_.get_map()
+
 
 
 ############

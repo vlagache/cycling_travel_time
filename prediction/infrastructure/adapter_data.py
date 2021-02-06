@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from prediction.domain.activity import Activity
 from prediction.domain.athlete import Athlete
@@ -242,7 +242,7 @@ class AdapterRoute:
     def estimated_moving_time(self) -> int:
         return self.data.get("estimated_moving_time")
 
-    def gpx(self) -> str:
+    def gpx(self) -> List[Dict]:
         return self.data.get("gpx")
 
     def get(self) -> Route:

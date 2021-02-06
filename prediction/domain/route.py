@@ -1,10 +1,13 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
+
+import folium
+from folium import plugins
 
 
 class Route:
 
     def __init__(self, id_: int, athlete_id: int, description: str, distance: int, elevation_gain: int,
-                 name: str, created_at: str, estimated_moving_time: int, gpx: str):
+                 name: str, created_at: str, estimated_moving_time: int, gpx: List[Dict]):
         self.id = id_
         self.athlete_id = athlete_id
         self.description = description
@@ -14,6 +17,40 @@ class Route:
         self.created_at = created_at
         self.estimated_moving_time = estimated_moving_time
         self.gpx = gpx
+
+    def get_map(self) -> str:
+        """
+        from points of geographical coordinates returns a map of the route as a string html
+
+        """
+
+        middle_value = round(len(self.gpx) / 2)
+        middle_point = [
+            self.gpx[middle_value].get("latitude"),
+            self.gpx[middle_value].get("longitude")
+        ]
+        points = [
+            [point.get("latitude"), point.get("longitude")]
+            for point in self.gpx
+        ]
+
+        m = folium.Map(
+            location=middle_point,
+            zoom_start=13
+        )
+        folium.plugins.AntPath(
+            locations=points,
+            dash_array=[10, 35],
+            color="#FC4C02",
+            pulse_color="black",
+            weight=5,
+            delay=800,
+            hardware_acceleration=True,
+            opacity=0.9
+        ).add_to(m)
+
+        m.fit_bounds(m.get_bounds())
+        return m._repr_html_()
 
 
 class RouteRepository:
