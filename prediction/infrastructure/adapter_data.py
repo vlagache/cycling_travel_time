@@ -255,5 +255,6 @@ class AdapterRoute:
             name=self.name(),
             created_at=self.created_at(),
             estimated_moving_time=self.estimated_moving_time(),
-            gpx=self.gpx()
+            gpx=self.gpx(),
+            segments="None"
         )

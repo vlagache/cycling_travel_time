@@ -61,25 +61,4 @@ jQuery(document).ready(function(){
             }
         })
     });
-
-//    Select Routes
-     $('select').select();
-
-     $('#segmentation').on( 'click', function(e){
-        console.log($('#route_choice option:selected').val());
-     });
-
-//     Loading Map of Route
-     $('#route_choice').on('change', function(e){
-        var value = $(this).val()
-        $('#map_route').empty()
-        e.preventDefault();
-        let options = {
-            method:'GET',
-            url: '/get_map?route_id=' + value
-        }
-        $.ajax(options).done(response => {
-            $('#map_route').append(response)
-        })
-     });
 })
