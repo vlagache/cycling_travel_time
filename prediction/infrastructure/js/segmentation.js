@@ -34,7 +34,14 @@ jQuery(document).ready(function(){
      $('#route_choice').on('change', function(e){
         var value = $(this).val()
         $('#map_route').empty()
+        $('#segments').empty()
         e.preventDefault();
+        get_map(value);
+        get_segmentation(value);
+     });
+
+
+     var get_map = (function(value){
         let options = {
             method:'GET',
             url: '/get_map?route_id=' + value
@@ -43,5 +50,24 @@ jQuery(document).ready(function(){
             $('#map_route').append(response)
         })
      });
+
+
+     var get_segmentation=(function(value){
+        let options = {
+            method:'GET',
+            url: '/get_segmentation?route_id=' + value
+        }
+        $.ajax(options).done(response => {
+            $.each(response, function(index , segment){
+                $('#segments').append(
+                    "<p class='segment'> Segment " +  (index+1) + " : distance : " + segment.distance +
+                     " , altitude_gain " + segment.altitude_gain +", vertical_drop : "
+                     + segment.vertical_drop +  " </p>"
+                )
+            });
+        })
+     });
+
+
 
 })

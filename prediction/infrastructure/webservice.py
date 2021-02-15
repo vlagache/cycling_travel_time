@@ -118,13 +118,12 @@ async def get_map(route_id: int):
     return route_.get_map()
 
 
-@app.get("/test_segmentation")
-async def get_map(route_id: int):
+@app.get("/get_segmentation")
+async def get_segmentation(route_id: int):
     route_ = route.repository.get(route_id)
-    print(route_.segments)
-    route_.compute_segmentation()
-    route.repository.save(route_)
-    return 'Segmentation OK'
+    return route_.segmentation
+
+
 
 
 ############
