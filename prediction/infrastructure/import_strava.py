@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from prediction.domain import athlete, activity, route
 from prediction.infrastructure import adapter_data
-from utils.functions import gpx_parser
+from utils.functions import gpx_parser, compute_segmentation
 
 
 class ImportStrava:
@@ -209,6 +209,7 @@ class ImportStrava:
                 gpx = self.get_route_gpx(route_id=route_id)
                 parsed_gpx = gpx_parser(gpx)
                 route_json['gpx'] = parsed_gpx
+                route_json['segmentation'] = compute_segmentation(parsed_gpx)
                 route_ = adapter_data.AdapterRoute(route_json).get()
                 route.repository.save(route_)
                 routes_added += 1

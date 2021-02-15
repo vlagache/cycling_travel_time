@@ -245,6 +245,9 @@ class AdapterRoute:
     def gpx(self) -> List[Dict]:
         return self.data.get("gpx")
 
+    def segmentation(self) -> List[Dict]:
+        return self.data.get("segmentation")
+
     def get(self) -> Route:
         return Route(
             id_=self.id(),
@@ -256,5 +259,5 @@ class AdapterRoute:
             created_at=self.created_at(),
             estimated_moving_time=self.estimated_moving_time(),
             gpx=self.gpx(),
-            segments="None"
+            segmentation=self.segmentation()
         )
