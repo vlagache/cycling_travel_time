@@ -34,9 +34,11 @@ jQuery(document).ready(function(){
      $('#route_choice').on('change', function(e){
         var value = $(this).val()
         $('#map_route').empty()
+        $('#map_segmentation_route').empty()
         $('#segments').empty()
         e.preventDefault();
         get_map(value);
+        get_segmentation_map(value);
         get_segmentation(value);
      });
 
@@ -51,6 +53,15 @@ jQuery(document).ready(function(){
         })
      });
 
+     var get_segmentation_map = (function(value){
+        let options = {
+            method:'GET',
+            url: '/get_segmentation_map?route_id=' + value
+        }
+        $.ajax(options).done(response => {
+            $('#map_segmentation_route').append(response)
+        })
+     });
 
      var get_segmentation=(function(value){
         let options = {

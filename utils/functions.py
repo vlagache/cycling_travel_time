@@ -101,28 +101,72 @@ def compute_segmentation(gpx: List[Dict]) -> List[Dict]:
                 df.loc[i, "segment"] = df.loc[i - 1, "segment"]
 
     df = df_na.append(df, ignore_index=True)
-    df_start_end_segments = df.groupby('segment').agg(['first', 'last']).stack()
 
-    # Compute information about segments
-    segments = []
-    for i in range(len(df_start_end_segments.index.levels[0].unique())):
+    # start & end of each segment
+    all_segments_index = []
+    for i in df['segment'].unique():
+        segment_index = {}
+        segment_df = df.loc[df['segment'] == i]
         if i == 0:
-            total_distance = df_start_end_segments.xs('last', level=1)['total_distance'][i]
-            altitude_gain = df_start_end_segments.xs('last', level=1)['elevation'][i] - \
-                            df_start_end_segments.xs('first', level=1)['elevation'][i]
+            segment_index['start'] = segment_df.head(1).index.values[0]
         else:
-            total_distance = df_start_end_segments.xs('last', level=1)['total_distance'][i] - \
-                             df_start_end_segments.xs('last', level=1)['total_distance'][i - 1]
-            altitude_gain = df_start_end_segments.xs('last', level=1)['elevation'][i] - \
-                            df_start_end_segments.xs('last', level=1)['elevation'][i - 1]
+            segment_index['start'] = segment_df.head(1).index.values[0] - 1
+        segment_index['end'] = segment_df.tail(1).index.values[0]
+        all_segments_index.append(segment_index)
 
-        vertical_drop = (altitude_gain * 100) / total_distance
+    # compute information about segments
+    segments = []
+    for i in range(len(all_segments_index)):
+        segment = {}
+        segment_df = df.loc[all_segments_index[i].get("start"):all_segments_index[i].get("end")]
+        if i == 0:
+            distance = segment_df.tail(1)['total_distance'].values[0]
+        else:
+            distance = segment_df.tail(1)['total_distance'].values[0] - segment_df.head(1)['total_distance'].values[0]
+        altitude_gain = segment_df.tail(1)['elevation'].values[0] - segment_df.head(1)['elevation'].values[0]
+        vertical_drop = (altitude_gain * 100) / distance
 
-        segment = {
-            "distance": float(round(total_distance, 2)),
-            "altitude_gain": float(round(altitude_gain, 2)),
-            "vertical_drop": float(round(vertical_drop, 2))
-        }
+        # all points of a segment
+        all_points = []
+        for latitude, longitude in zip(segment_df['latitude'].values, segment_df['longitude'].values):
+            point = [float(latitude), float(longitude)]
+            all_points.append(point)
+
+        segment['distance'] = float(round(distance, 2))
+        segment['altitude_gain'] = float(round(altitude_gain, 2))
+        segment['vertical_drop'] = float(round(vertical_drop, 2))
+        segment['all_points'] = list(all_points)
         segments.append(segment)
 
     return segments
+
+
+
+
+
+
+    # df_start_end_segments = df.groupby('segment').agg(['first', 'last']).stack()
+    #
+    # # Compute information about segments
+    # segments = []
+    # for i in range(len(df_start_end_segments.index.levels[0].unique())):
+    #     if i == 0:
+    #         total_distance = df_start_end_segments.xs('last', level=1)['total_distance'][i]
+    #         altitude_gain = df_start_end_segments.xs('last', level=1)['elevation'][i] - \
+    #                         df_start_end_segments.xs('first', level=1)['elevation'][i]
+    #     else:
+    #         total_distance = df_start_end_segments.xs('last', level=1)['total_distance'][i] - \
+    #                          df_start_end_segments.xs('last', level=1)['total_distance'][i - 1]
+    #         altitude_gain = df_start_end_segments.xs('last', level=1)['elevation'][i] - \
+    #                         df_start_end_segments.xs('last', level=1)['elevation'][i - 1]
+    #
+    #     vertical_drop = (altitude_gain * 100) / total_distance
+    #
+    #     segment = {
+    #         "distance": float(round(total_distance, 2)),
+    #         "altitude_gain": float(round(altitude_gain, 2)),
+    #         "vertical_drop": float(round(vertical_drop, 2))
+    #     }
+    #     segments.append(segment)
+    #
+    # return segments

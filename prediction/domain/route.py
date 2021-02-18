@@ -20,28 +20,31 @@ class Route:
         self.gpx = gpx
         self.segmentation = segmentation
 
-    def get_map(self) -> str:
-        """
-        from points of geographical coordinates returns a map of the route as a string html
-
-        """
-
+    def get_middle_point(self) -> List:
         middle_value = round(len(self.gpx) / 2)
         middle_point = [
             self.gpx[middle_value].get("latitude"),
             self.gpx[middle_value].get("longitude")
         ]
-        points = [
+        return middle_point
+
+    def get_all_points(self) -> List:
+        return [
             [point.get("latitude"), point.get("longitude")]
             for point in self.gpx
         ]
 
+    def get_map(self) -> str:
+        """
+        from points of geographical coordinates returns a map of the route as a string html
+
+        """
         m = folium.Map(
-            location=middle_point,
+            location=self.get_middle_point(),
             zoom_start=13
         )
         folium.plugins.AntPath(
-            locations=points,
+            locations=self.get_all_points(),
             dash_array=[10, 35],
             color="#FC4C02",
             pulse_color="black",
@@ -50,6 +53,41 @@ class Route:
             hardware_acceleration=True,
             opacity=0.9
         ).add_to(m)
+
+        m.fit_bounds(m.get_bounds())
+        return m._repr_html_()
+
+    def get_segmentation_map(self) -> str:
+
+        m = folium.Map(
+            location=self.get_middle_point(),
+            zoom_start=13
+        )
+
+        for segment in self.segmentation:
+            if segment.get("vertical_drop") < 0:
+
+                line = folium.PolyLine(
+                    locations=segment.get("all_points"),
+                    weight=5,
+                    color="green"
+                ).add_to(m)
+
+            elif segment.get("vertical_drop") > 0:
+
+                line = folium.PolyLine(
+                    locations=segment.get("all_points"),
+                    weight=5,
+                    color="red"
+                ).add_to(m)
+
+            # flat
+            else:
+                line = folium.PolyLine(
+                    locations=segment.get("all_points"),
+                    weight=5,
+                    color="black"
+                ).add_to(m)
 
         m.fit_bounds(m.get_bounds())
         return m._repr_html_()
