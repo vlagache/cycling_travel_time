@@ -72,8 +72,8 @@ jQuery(document).ready(function(){
             $.each(response, function(index , segment){
                 $('#segments').append(
                     "<p class='segment'> Segment " +  (index+1) + " : distance : " + segment.distance +
-                     " , altitude_gain " + segment.altitude_gain +", vertical_drop : "
-                     + segment.vertical_drop +  " </p>"
+                     " , altitude_gain " + segment.altitude_gain +", average_grade : "
+                     + segment.average_grade +  " </p>"
                 )
             });
         })
