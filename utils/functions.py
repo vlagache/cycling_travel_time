@@ -6,6 +6,7 @@ from typing import List, Dict
 import gpxpy
 import numpy as np
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
 warnings.filterwarnings('ignore')
 
@@ -54,6 +55,14 @@ def haversine(lon1, lat1, lon2, lat2):
     km = 6371 * c
     m = km * 1000
     return m
+
+
+def convert_seconds_in_hms(seconds):
+    duration = relativedelta(seconds=seconds)
+    hours = int(duration.hours)
+    minutes = int(duration.minutes)
+    seconds = int(duration.seconds)
+    return hours, minutes, seconds
 
 
 def compute_segmentation(gpx: List[Dict]) -> List[Dict]:

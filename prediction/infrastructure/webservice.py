@@ -11,10 +11,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from prediction.domain import athlete, activity, route
+from prediction.domain import athlete, activity, route, model
 from prediction.infrastructure.adapter_data import AdapterAthlete
 from prediction.infrastructure.elasticsearch import \
-    ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository
+    ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository, ElasticModelRepository
 from prediction.infrastructure.import_strava import ImportStrava
 
 load_dotenv()
@@ -24,6 +24,7 @@ LOGIN_URL = "http://www.strava.com/oauth/authorize"
 athlete.repository = ElasticAthleteRepository()
 activity.repository = ElasticActivityRepository()
 route.repository = ElasticRouteRepository()
+model.repository = ElasticModelRepository()
 
 app.mount("/static", StaticFiles(directory="prediction/infrastructure/static"), name="static")
 app.mount("/js", StaticFiles(directory="prediction/infrastructure/js"), name="js")
@@ -36,7 +37,11 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 @app.get("/debug")
 async def debug():
-    return 'Debug Path'
+    model_ = model.Model()
+    model_.train()
+
+
+
 
 
 ###################
