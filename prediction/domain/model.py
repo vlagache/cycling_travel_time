@@ -1,7 +1,10 @@
 import datetime
 import logging
+import os
+import pickle
 import random
 import time
+import uuid
 from datetime import timedelta, date
 from typing import Tuple, Any
 
@@ -16,8 +19,8 @@ from prediction.domain import activity
 class Model:
 
     def __init__(self):
+        self.id = uuid.uuid4()
         self.activities, self.segments = self.load_data()
-        self.date_train = date.today()
         self.features = ['elapsed_time', 'distance', 'climb_category']
         self.cleaning_result = {}
         self.features_added = []
@@ -28,6 +31,8 @@ class Model:
         self.mae = None
         self.mape = None
         self.rmse = None
+        self.training_time = None
+        self.training_date = date.today().strftime('%d/%m/%Y')
 
     @staticmethod
     def load_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -168,15 +173,45 @@ class Model:
         self.processing.append("log_label")
         return label
 
-    def fit_predict(self):
-        pass
+    def fit_predict(self, model, x_train, y_train, x_test):
+        self.name = type(model).__name__
+        model.fit(x_train, y_train)
+        y_pred = model.predict(x_test)
+        return y_pred
+
+    def metrics(self, y_test, y_pred):
+        if "log_label" in self.processing:
+            y_pred = np.exp(y_pred)
+
+        self.mae = mean_absolute_error(y_test, y_pred)
+        self.mape = mean_absolute_percentage_error(y_test, y_pred)
+        self.rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
+    def pickle_dump(self, model):
+        filename = f'./models/{self.id}'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        pickle.dump(model, open(filename, 'wb'))
+
+    def logging_meta_data(self):
+        logging.info(f'Initial Features -  {self.features}')
+        logging.info(f"Data Cleaning - initial shape :  {self.cleaning_result['initial_shape']}"
+                     f" end shape: {self.cleaning_result['end_shape']}")
+        logging.info(f'Features added -  {self.features_added}')
+        logging.info(f'Ratio train_set/total -  {self.ratio_train_total}')
+        logging.info(f'Features Train -  {self.features_train}')
+        logging.info(f'Processing -  {self.processing}')
+        logging.info(f'Model -  {self.name}')
+        logging.info(f'Metrics - MAE :  {self.mae} , MAPE : {self.mape} , RMSE : {self.rmse} ')
+        logging.info(f'Training Time : {self.training_time}')
 
     def train(self):
         start_train = time.perf_counter()
 
+        # format date
         self.activities = self.format_date(self.activities)
         self.segments = self.format_date(self.segments)
 
+        # cleaning
         self.clean_data()
 
         # features engineering
@@ -191,36 +226,24 @@ class Model:
         x_train, y_train, x_test, y_test = self.split_train_test(0.2)
 
         # log label
-        y_train_log = self.log_label(y_train)
+        y_train = self.log_label(y_train)
 
         # algo
-        forrest_reg = RandomForestRegressor()
-        self.name = type(forrest_reg).__name__
-        forrest_reg.fit(x_train, y_train_log)
-        y_pred_forrest_log = forrest_reg.predict(x_test)
+        model = RandomForestRegressor()
+        y_pred = self.fit_predict(model,
+                                  x_train,
+                                  y_train,
+                                  x_test)
 
         # metrics
-        self.mae = mean_absolute_error(y_test, np.exp(y_pred_forrest_log))
-        self.mape = mean_absolute_percentage_error(y_test, np.exp(y_pred_forrest_log))
-        self.rmse = np.sqrt(mean_squared_error(y_test, np.exp(y_pred_forrest_log)))
-
-
-
+        self.metrics(y_test, y_pred)
 
         end_train = time.perf_counter()
-        logging.info(f'Initial Features -  {self.features}')
-        logging.info(f"Data Cleaning - initial shape :  {self.cleaning_result['initial_shape']}"
-                     f" end shape: {self.cleaning_result['end_shape']}")
-        logging.info(f'Features added -  {self.features_added}')
-        logging.info(f'Ratio train_set/total -  {self.ratio_train_total}')
-        logging.info(f'Features Train -  {self.features_train}')
-        logging.info(f'Processing -  {self.processing}')
-        logging.info(f'Model -  {self.name}')
-        logging.info(f'Metrics - MAE :  {self.mae} , MAPE : {self.mape} , RMSE : {self.rmse} ')
-        logging.info(f'Training Time : {datetime.timedelta(seconds=int(end_train - start_train))}')
+        self.training_time = datetime.timedelta(seconds=int(end_train - start_train))
+        self.logging_meta_data()
 
-    def predict(self):
-        pass
+        # save
+        self.pickle_dump(model)
 
 
 class ModelRepository:

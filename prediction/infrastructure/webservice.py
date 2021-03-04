@@ -17,6 +17,8 @@ from prediction.infrastructure.elasticsearch import \
     ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository, ElasticModelRepository
 from prediction.infrastructure.import_strava import ImportStrava
 
+
+
 load_dotenv()
 app = FastAPI()
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
@@ -39,6 +41,7 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 async def debug():
     model_ = model.Model()
     model_.train()
+    model.repository.save(model_)
 
 
 

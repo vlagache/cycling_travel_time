@@ -4,7 +4,8 @@ from typing import List, Optional
 
 import elasticsearch
 import jsonpickle
-import jsonpickle.ext.pandas
+import jsonpickle.ext.pandas as jsonpickle_pandas
+
 
 from prediction.domain.activity import Activity, ActivityRepository
 from prediction.domain.athlete import Athlete, AthleteRepository
@@ -12,7 +13,6 @@ from prediction.domain.model import Model, ModelRepository
 from prediction.domain.route import Route, RouteRepository
 from utils.functions import transforms_string_in_datetime
 
-jsonpickle.ext.pandas.register_handlers()
 
 
 def read(obj):
@@ -262,6 +262,8 @@ class ElasticRouteRepository(RouteRepository):
 
 class ElasticModelRepository(ModelRepository):
     index = "index_model"
+    jsonpickle_pandas.register_handlers()
+
 
     def __init__(self):
         self.elastic = Elasticsearch(local_connect=True)
@@ -277,6 +279,5 @@ class ElasticModelRepository(ModelRepository):
         return self.elastic.store_data(
             data=jsonpickle.encode(model),
             index_name=self.index,
-            # TODO : A changer (Date d'entrainement ? )
-            id_data=1
+            id_data=model.id
         )
