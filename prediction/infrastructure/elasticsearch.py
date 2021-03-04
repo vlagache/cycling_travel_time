@@ -6,13 +6,11 @@ import elasticsearch
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
 
-
 from prediction.domain.activity import Activity, ActivityRepository
 from prediction.domain.athlete import Athlete, AthleteRepository
 from prediction.domain.model import Model, ModelRepository
 from prediction.domain.route import Route, RouteRepository
 from utils.functions import transforms_string_in_datetime
-
 
 
 def read(obj):
@@ -264,7 +262,6 @@ class ElasticModelRepository(ModelRepository):
     index = "index_model"
     jsonpickle_pandas.register_handlers()
 
-
     def __init__(self):
         self.elastic = Elasticsearch(local_connect=True)
         self.elastic.add_index(self.index)
@@ -274,6 +271,28 @@ class ElasticModelRepository(ModelRepository):
                                            id_data=id_)
         model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
         return model
+
+    # def get_better(self) -> Model:
+    #
+    #     query = {
+    #         "query": {
+    #             "match_all": {}
+    #         }
+    #     }
+    #     results = self.elastic.search_with_query(
+    #         index_name=self.index,
+    #         query=query
+    #     )
+    #     models = [
+    #         jsonpickle.decode((read(hit.get("_source"))))
+    #         for hit in results.get("hits").get("hits")]
+    #     return models
+
+
+        # result = self.elastic.search_by_id(index_name=self.index,
+        #                                    id_data=id_)
+        # model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        # return model
 
     def save(self, model: Model):
         return self.elastic.store_data(

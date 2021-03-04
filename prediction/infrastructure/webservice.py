@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
 from prediction.domain import athlete, activity, route, model
+from prediction.domain.model import TypeModel
 from prediction.infrastructure.adapter_data import AdapterAthlete
 from prediction.infrastructure.elasticsearch import \
     ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository, ElasticModelRepository
@@ -39,9 +40,14 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 @app.get("/debug")
 async def debug():
-    model_ = model.Model()
+    # for type_model in TypeModel:
+    #     model_ = model.Model(model=type_model)
+    #     model_.train()
+    #     model.repository.save(model_)
+
+    model_ = model.Model(model=TypeModel['LINEAR_REG'].value)
     model_.train()
-    model.repository.save(model_)
+    return model_.segments
 
 
 
