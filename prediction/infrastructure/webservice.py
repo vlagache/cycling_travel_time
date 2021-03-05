@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import urllib.parse
@@ -11,14 +12,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from prediction.domain import athlete, activity, route, model
+from prediction.domain import athlete, activity, route, model, predict
 from prediction.domain.model import TypeModel
 from prediction.infrastructure.adapter_data import AdapterAthlete
 from prediction.infrastructure.elasticsearch import \
     ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository, ElasticModelRepository
 from prediction.infrastructure.import_strava import ImportStrava
-
-
 
 load_dotenv()
 app = FastAPI()
@@ -38,19 +37,23 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 ################# DEBUG
 
 
-@app.get("/debug")
+@app.get("/train")
 async def debug():
-    # for type_model in TypeModel:
-    #     model_ = model.Model(model=type_model)
-    #     model_.train()
-    #     model.repository.save(model_)
-
-    model_ = model.Model(model=TypeModel['LINEAR_REG'].value)
-    model_.train()
-    return model_.segments
+    for type_model in TypeModel:
+        model_ = model.Model(model=type_model)
+        model_.train()
+        # model.repository.save(model_)
 
 
+@app.get("/predict")
+async def debug():
+    route_ = route.repository.get(id_=2787335981548134218)
+    model_ = model.repository.get_better_mape()
+    predict_ = predict.Predict(model=model_,
+                               route=route_,
+                               virtual_ride=True)
 
+    return predict_.prepare_data()
 
 
 ###################

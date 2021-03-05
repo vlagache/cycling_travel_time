@@ -28,6 +28,14 @@ def transforms_string_in_datetime(date: str):
     return format_date
 
 
+def transforms_date_in_str(date_):
+    return date_.strftime("%Y-%m-%d")
+
+
+def transforms_time_in_str(time_):
+    return time_.strftime("%H:%M%S")
+
+
 def gpx_parser(gpx: str) -> List[Dict]:
     parsed_gpx = gpxpy.parse(gpx)
     data = [
@@ -62,7 +70,7 @@ def convert_seconds_in_hms(seconds):
     hours = int(duration.hours)
     minutes = int(duration.minutes)
     seconds = int(duration.seconds)
-    return hours, minutes, seconds
+    return {'hours': hours, 'minutes': minutes, 'seconds': seconds}
 
 
 def compute_segmentation(gpx: List[Dict]) -> List[Dict]:

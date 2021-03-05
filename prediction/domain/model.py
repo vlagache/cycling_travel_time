@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 import pickle
@@ -8,16 +7,16 @@ import uuid
 from datetime import timedelta, date, datetime
 from enum import Enum
 from statistics import mean, StatisticsError
-from typing import Tuple, List, Dict, Any
+from typing import List, Dict
 
 import numpy as np
-import pandas as pd
 import xgboost as xgb
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 
 from prediction.domain import activity
+from utils.functions import transforms_date_in_str, transforms_time_in_str
 
 
 class TypeModel(Enum):
@@ -27,12 +26,14 @@ class TypeModel(Enum):
 
 
 class Model:
+    directory_models = './models/'
 
     def __init__(self, model: TypeModel):
         self.model = model
         self.id = uuid.uuid4()
         self.activities, self.segments = self.load_data()
-        self.features = ['elapsed_time', 'distance', 'climb_category']
+        self.label = 'elapsed_time'
+        self.features = ['distance', 'climb_category']
         self.cleaning_result = {}
         self.features_added = []
         self.ratio_train_total = None
@@ -77,6 +78,16 @@ class Model:
         # dataframe['start_date'] = dataframe['start_date_local'].dt.date
         # dataframe = dataframe.drop(columns=['start_date_local'])
         # return dataframe
+
+    @staticmethod
+    def format_date_to_str(item_list: List):
+        """
+        Use to reformat dates into a string at the end of the training for storage in Elastic
+        """
+        for item in item_list:
+            item['start_date'] = transforms_date_in_str(item.get("start_date"))
+            item['start_time'] = transforms_time_in_str(item.get("start_time"))
+        return item_list
 
     def clean_data(self):
         initial_shape = (len(self.segments), len(self.segments[0]))
@@ -129,7 +140,7 @@ class Model:
             'end_shape': end_shape
         }
 
-    def activities_last_30d(self, date_: datetime.date) -> List[Dict]:
+    def activities_last_30d(self, date_: date) -> List[Dict]:
         end_date = date_ - timedelta(days=1)
         start_date = end_date - timedelta(days=30)
         return [
@@ -138,7 +149,7 @@ class Model:
 
         # return self.activities[self.activities['start_date'].between(start_date, end_date)]
 
-    def segments_last_30d(self, date_: datetime.date) -> List[Dict]:
+    def segments_last_30d(self, date_: date) -> List[Dict]:
         end_date = date_ - timedelta(days=1)
         start_date = end_date - timedelta(days=30)
         return [
@@ -263,10 +274,15 @@ class Model:
         # self.segments['calendar_day'] = calendar_days
         #
 
-        dates_unique = set(
+        dates_unique = list(set(
             segment_.get('calendar_day') for segment_ in self.segments
-        )
-        dates_unique = list(dates_unique)
+        ))
+
+        dates_unique = []
+        for segment_ in self.segments:
+            if segment_.get('calendar_day') not in dates_unique:
+                dates_unique.append(segment_.get('calendar_day'))
+
         ratio_train_test = len(dates_unique) * ratio
 
         # dates_unique = self.segments['calendar_day'].unique()
@@ -280,13 +296,34 @@ class Model:
             segment_ for segment_ in self.segments if segment_.get('calendar_day') in dates_test_set
         ]
 
-        logging.info(len(self.segments))
-        # TODO : Marche pas renvoie jamais la meme longueur de test_set
-        logging.info(len(test_set))
+        train_set = [
+            segment_ for segment_ in self.segments if segment_.get('calendar_day') not in dates_test_set
+        ]
 
         # test_set = self.segments[self.segments['calendar_day'].isin(dates_test_set)]
         # train_set = self.segments.drop(test_set.index)
-        #
+
+        x_train = [
+            [value for key, value in segment_.items() if key in self.features_train] for segment_ in train_set
+        ]
+
+        y_train = [
+            segment_.get(self.label) for segment_ in train_set
+            # value for key, value in segment_.items() for segment_ in train_set if key == self.label
+        ]
+
+        x_test = [
+            [value for key, value in segment_.items() if key in self.features_train] for segment_ in test_set
+        ]
+
+        y_test = [
+            segment_.get(self.label) for segment_ in test_set
+            # value for key, value in segment_.items() if key == self.label for segment_ in test_set
+        ]
+
+        self.ratio_train_total = round(len(train_set) / len(self.segments), 2)
+        return np.array(x_train), np.array(y_train), np.array(x_test), np.array(y_test)
+
         # train_set = train_set[self.features_train]
         # test_set = test_set[self.features_train]
         #
@@ -299,35 +336,45 @@ class Model:
         #
         # return x_train, y_train, x_test, y_test
 
-    def log_label(self, label: pd.Series) -> pd.Series:
-        label = np.log(label)
+    def log_label(self, y_train: np.array) -> np.array:
+        y_train_log = [
+            np.log(value) for value in y_train
+        ]
         self.processing.append("log_label")
-        return label
+        return y_train_log
+
+        #
+        # label = np.log(label)
+        # self.processing.append("log_label")
+        # return label
 
     def fit_predict(self, model, x_train, y_train, x_test):
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         return y_pred
 
-    def metrics(self, y_test, y_pred):
+    def metrics(self, y_test, y_pred) -> None:
         if "log_label" in self.processing:
             y_pred = np.exp(y_pred)
 
-        self.mae = mean_absolute_error(y_test, y_pred)
-        self.mape = mean_absolute_percentage_error(y_test, y_pred)
-        self.rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        # convert numpy dtypes to native python types with val.item()
+        self.mae = (mean_absolute_error(y_test, y_pred)).item()
+        self.mape = (mean_absolute_percentage_error(y_test, y_pred)).item()
+        self.rmse = (np.sqrt(mean_squared_error(y_test, y_pred))).item()
 
-    def pickle_dump(self, model):
-        filename = f'./models/{self.id}'
+    def pickle_dump(self, model) -> None:
+        # filename = f'./models/{self.id}'
+        filename = self.directory_models + str(self.id)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         pickle.dump(model, open(filename, 'wb'))
 
-    def logging_meta_data(self):
+    def logging_meta_data(self) -> None:
         logging.info(f'Initial Features -  {self.features}')
         logging.info(f"Data Cleaning - initial shape :  {self.cleaning_result['initial_shape']}"
                      f" end shape: {self.cleaning_result['end_shape']}")
         logging.info(f'Features added -  {self.features_added}')
         logging.info(f'Ratio train_set/total -  {self.ratio_train_total}')
+        logging.info(f'Label -  {self.label}')
         logging.info(f'Features Train -  {self.features_train}')
         logging.info(f'Processing -  {self.processing}')
         logging.info(f'Model -  {self.model}')
@@ -337,7 +384,7 @@ class Model:
     def train(self):
         start_train = time.perf_counter()
 
-        # format date
+        # format date_str to date
         self.activities = self.format_date(self.activities)
         self.segments = self.format_date(self.segments)
 
@@ -353,32 +400,32 @@ class Model:
 
         # split train/test
         self.features_train = self.features + self.features_added
-        self.split_train_test(0.2)
+        x_train, y_train, x_test, y_test = self.split_train_test(0.2)
 
-        # x_train, y_train, x_test, y_test = self.split_train_test(0.2)
-        #
-        # # log label
-        # y_train = self.log_label(y_train)
-        #
-        # # algo
-        # # model = RandomForestRegressor()
-        # y_pred = self.fit_predict(self.model.value,
-        #                           x_train,
-        #                           y_train,
-        #                           x_test)
-        #
-        # # metrics
-        # self.metrics(y_test, y_pred)
-        #
-        # end_train = time.perf_counter()
-        # self.training_time = datetime.timedelta(seconds=int(end_train - start_train))
-        #
-        # # save
-        # self.pickle_dump(self.model.value)
-        #
-        # # TODO Ugly method for not to encode the model in json
-        # self.model = type(self.model.value).__name__
-        # self.logging_meta_data()
+        # log label
+        y_train = self.log_label(y_train)
+
+        # algo fit predict
+        y_pred = self.fit_predict(self.model.value,
+                                  x_train,
+                                  y_train,
+                                  x_test)
+
+        # metrics
+        self.metrics(y_test, y_pred)
+        end_train = time.perf_counter()
+        self.training_time = timedelta(seconds=int(end_train - start_train))
+
+        # save
+        self.pickle_dump(self.model.value)
+
+        # TODO Ugly method for not to encode the model in json
+        self.model = type(self.model.value).__name__
+        self.logging_meta_data()
+
+        # format date to str
+        self.activities = self.format_date_to_str(self.activities)
+        self.segments = self.format_date_to_str(self.segments)
 
 
 class ModelRepository:
@@ -386,7 +433,7 @@ class ModelRepository:
     def get(self, id_) -> Model:
         raise NotImplementedError()
 
-    def get_better(self) -> Model:
+    def get_better_mape(self) -> Model:
         raise NotImplementedError()
 
     def save(self, model: Model):

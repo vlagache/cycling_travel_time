@@ -272,27 +272,27 @@ class ElasticModelRepository(ModelRepository):
         model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
         return model
 
-    # def get_better(self) -> Model:
-    #
-    #     query = {
-    #         "query": {
-    #             "match_all": {}
-    #         }
-    #     }
-    #     results = self.elastic.search_with_query(
-    #         index_name=self.index,
-    #         query=query
-    #     )
-    #     models = [
-    #         jsonpickle.decode((read(hit.get("_source"))))
-    #         for hit in results.get("hits").get("hits")]
-    #     return models
-
-
-        # result = self.elastic.search_by_id(index_name=self.index,
-        #                                    id_data=id_)
-        # model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
-        # return model
+    def get_better_mape(self) -> Model:
+        """
+        returns the model with the best MAPE (the weakest one).
+        MAPE : Mean Absolut Percentage Error
+        """
+        query = {
+            "query": {
+                "match_all": {}
+            },
+            "sort": [
+                {"mape": "asc"}
+            ]
+        }
+        results = self.elastic.search_with_query(
+            index_name=self.index,
+            query=query
+        )
+        models = [
+            jsonpickle.decode((read(hit.get("_source"))))
+            for hit in results.get("hits").get("hits")]
+        return models[0]
 
     def save(self, model: Model):
         return self.elastic.store_data(
