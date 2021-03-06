@@ -7,7 +7,7 @@ import uuid
 from datetime import timedelta, date, datetime
 from enum import Enum
 from statistics import mean, StatisticsError
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import numpy as np
 import xgboost as xgb
@@ -43,7 +43,7 @@ class Model:
         self.mape = None
         self.rmse = None
         self.training_time = None
-        self.training_date = date.today().strftime('%d/%m/%Y')
+        self.training_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
 
     @staticmethod
     def load_data():
@@ -430,10 +430,24 @@ class Model:
 
 class ModelRepository:
 
+    def is_empty(self) -> bool:
+        raise NotImplementedError()
+
     def get(self, id_) -> Model:
         raise NotImplementedError()
 
     def get_better_mape(self) -> Model:
+        raise NotImplementedError()
+
+    def get_general_info(self) -> Optional[dict]:
+        """
+        Returns the number of activities in base, the name and
+        time of the last one
+        Or None if the index is empty
+        """
+        raise NotImplementedError()
+
+    def get_all(self) -> List[Model]:
         raise NotImplementedError()
 
     def save(self, model: Model):

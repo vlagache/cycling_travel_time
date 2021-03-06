@@ -15,7 +15,7 @@
     <div id="routes_segmentation" class="row">
         <div class="col s11 push-s1">
 
-            <h2>Routes Segmentation</h2>
+            <h2>Prediction</h2>
 
             <div class="row">
                 <div class="input-field col s7">
@@ -47,19 +47,21 @@
                 </div>
             </div>
 
+            <div class="row">
+                <h2>To Do</h2>
+                <p> Checkbox Virtual Ride / Real </p>
+            </div>
+
 
             <div class="row">
+                <a id="prediction_btn" class="waves-effect waves-light btn orange darken-4">Prediction</a>
+            </div>
+
+            <div class="prediction">
                 <p>
-                    Prediction de temps sur chacun des segments ????
+                    Prediction : <span class="prediction_time"></span>
                 </p>
             </div>
-            <div class="row">
-                <a id="segmentation" class="waves-effect waves-light btn orange darken-4">Prediction</a>
-            </div>
-
-            <p class="segmentation_info">
-
-            </p>
 
             <div id="circle_loading" class="preloader-wrapper active center-align">
                 <div class="spinner-layer spinner-red-only">
@@ -89,7 +91,7 @@
 <!-- Compiled and minified JavaScript -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="js/segmentation.js"></script>
+<script src="js/prediction.js"></script>
 <script>M.AutoInit();</script>
 </body>
 </html>

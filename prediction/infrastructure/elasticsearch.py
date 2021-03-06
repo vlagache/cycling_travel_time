@@ -4,7 +4,6 @@ from typing import List, Optional
 
 import elasticsearch
 import jsonpickle
-import jsonpickle.ext.pandas as jsonpickle_pandas
 
 from prediction.domain.activity import Activity, ActivityRepository
 from prediction.domain.athlete import Athlete, AthleteRepository
@@ -260,17 +259,55 @@ class ElasticRouteRepository(RouteRepository):
 
 class ElasticModelRepository(ModelRepository):
     index = "index_model"
-    jsonpickle_pandas.register_handlers()
 
     def __init__(self):
         self.elastic = Elasticsearch(local_connect=True)
         self.elastic.add_index(self.index)
+
+    def is_empty(self) -> bool:
+        result = self.elastic.get_index_docs_count(self.index)
+        if result[0].get("count") == "0":
+            return True
+        else:
+            return False
 
     def get(self, id_) -> Model:
         result = self.elastic.search_by_id(index_name=self.index,
                                            id_data=id_)
         model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
         return model
+
+    def get_all(self) -> List[Model]:
+        query = {
+            "query": {
+                "match_all": {}
+            }
+        }
+        results = self.elastic.search_with_query(
+            index_name=self.index,
+            query=query
+        )
+        activities = [
+            jsonpickle.decode((read(hit.get("_source"))))
+            for hit in results.get("hits").get("hits")]
+        return activities
+
+    def get_general_info(self) -> Optional[dict]:
+        if not self.is_empty():
+            models = self.get_all()
+            for model_ in models:
+                model_.training_date = transforms_string_in_datetime(model_.training_date)
+
+            models = sorted(models, key=lambda model_: model_.training_date, reverse=True)
+            last_model_trained = models[0]
+
+            info_models = {
+                'models_in_base': len(models),
+                'date_last_model': last_model_trained.training_date
+            }
+            return info_models
+        else:
+            return None
 
     def get_better_mape(self) -> Model:
         """

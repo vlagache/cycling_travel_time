@@ -70,7 +70,7 @@ def convert_seconds_in_hms(seconds):
     hours = int(duration.hours)
     minutes = int(duration.minutes)
     seconds = int(duration.seconds)
-    return {'hours': hours, 'minutes': minutes, 'seconds': seconds}
+    return hours, minutes, seconds
 
 
 def compute_segmentation(gpx: List[Dict]) -> List[Dict]:

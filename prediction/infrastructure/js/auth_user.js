@@ -8,15 +8,19 @@ jQuery(document).ready(function(){
         // reactivation of the button
         $('#update_activities').removeClass('disabled')
         $('#update_routes').removeClass('disabled')
+        $('#update_models').removeClass('disabled')
 
         $("#circle_loading").hide()
 
-        // In the case where there is no activity in base at the start
+        // In the case where there is no activities/routes/models in base at the start
         $(".info_activities").show()
         $(".no_activities").hide()
 
         $(".info_routes").show()
         $(".no_routes").hide()
+
+        $(".info_models").show()
+        $(".no_models").hide()
 
     })
 
@@ -61,4 +65,20 @@ jQuery(document).ready(function(){
             }
         })
     });
+
+// Train Models
+    $('#update_models').on( 'click', function(e){
+        $('#update_models').addClass('disabled')
+        e.preventDefault();
+        let options = {
+            method:'GET',
+            url: '/train_models'
+        }
+        $.ajax(options).done(response => {
+            $(".models_in_base").text(response.models_in_base)
+            $(".date_last_model").text(response.date_last_model)
+        })
+    });
+
+
 })

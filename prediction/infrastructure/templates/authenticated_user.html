@@ -14,17 +14,6 @@
 <div class="container">
 
 
-    <div id="auth_infos" class="row">
-        <div class="col s11 push-s1">
-            <h2> Infos Auth</h2>
-            <p> access token : {{ import_strava.athlete.access_token }}</p>
-            <p> refresh_token : {{ import_strava.athlete.refresh_token }}</p>
-            <p> expires_at : {{ import_strava.athlete.token_expires_at }}</p>
-            <p> user_id : {{ import_strava.athlete.id }}</p>
-        </div>
-    </div>
-
-
     <div id="database_infos" class="row">
         <div class="col s11 push-s1">
 
@@ -82,6 +71,31 @@
         </div>
     </div>
 
+    <div id="models" class="row">
+        <div class="col s11 push-s1">
+
+            <h2>Modeles</h2>
+
+            {% if info_models is not none %}
+            <div class="info_models">
+                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>
+                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span>
+                </p>
+            </div>
+            {% else %}
+            <div class="info_models" style="display :none;">
+                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>
+                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span>
+                </p>
+            </div>
+            <p class="no_models">Aucun modèle en base pour le moment...</p>
+            {% endif %}
+
+            <a id="update_models" class="waves-effect waves-light btn orange darken-4">Entrainement</a>
+
+        </div>
+    </div>
+
     <div id="circle_loading" class="preloader-wrapper active center-align">
         <div class="spinner-layer spinner-red-only">
             <div class="circle-clipper left">
@@ -97,18 +111,10 @@
     </div>
 
 
-    <div id="to_do" class="row">
-        <div class="col s11 push-s1">
-            <h2>To do</h2>
-            <p> Entrainement modele machine learning ( Back End entrainement sur les Segments et Prediction sur la route
-                segmentée)</p>
-        </div>
-    </div>
-
     <div id="other" class="row">
         <div class="col s11 push-s1">
             <p>
-                <a class="btn orange darken-4" href="/segmentation">Segmentation</a>
+                <a class="btn orange darken-4" href="/road_prediction">Prédiction</a>
             </p>
         </div>
     </div>

@@ -1,6 +1,4 @@
-import logging
 import os
-import time
 import urllib.parse
 from typing import Optional
 
@@ -37,25 +35,6 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 ################# DEBUG
 
 
-@app.get("/train")
-async def debug():
-    for type_model in TypeModel:
-        model_ = model.Model(model=type_model)
-        model_.train()
-        # model.repository.save(model_)
-
-
-@app.get("/predict")
-async def debug():
-    route_ = route.repository.get(id_=2787335981548134218)
-    model_ = model.repository.get_better_mape()
-    predict_ = predict.Predict(model=model_,
-                               route=route_,
-                               virtual_ride=True)
-
-    return predict_.prepare_data()
-
-
 ###################
 
 
@@ -82,29 +61,23 @@ async def main(request: Request):
 
 
 @app.get("/authenticated_user", response_class=HTMLResponse)
-async def authenticated_user(request: Request,
-                             athlete_id: str = Cookie(None)
-                             ):
-    # TODO : The new athlete does not have the time to be registered
-    #  in the database before request.
-    time.sleep(1)
-    athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
+async def authenticated_user(request: Request):
     info_activities = activity.repository.get_general_info()
     info_routes = route.repository.get_general_info()
+    info_models = model.repository.get_general_info()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
-                                       "import_strava": import_strava,
                                        "info_activities": info_activities,
-                                       "info_routes": info_routes})
+                                       "info_routes": info_routes,
+                                       "info_models": info_models})
 
 
-@app.get("/segmentation", response_class=HTMLResponse)
-async def main(request: Request):
+@app.get("/road_prediction", response_class=HTMLResponse)
+async def road_prediction(request: Request):
     routes = route.repository.get_all_desc()
-    return templates.TemplateResponse("segmentation.html", {"request": request,
-                                                            "routes": routes})
+    return templates.TemplateResponse("road_prediction.html", {"request": request,
+                                                               "routes": routes})
 
 
 #############
@@ -127,6 +100,30 @@ async def get_new_routes(athlete_id: str = Cookie(None)):
     info_routes = route.repository.get_general_info()
     info_routes['routes_added'] = routes_added
     return info_routes
+
+
+@app.get("/train_models")
+async def train_models():
+    for type_model in TypeModel:
+        model_ = model.Model(model=type_model)
+        model_.train()
+        model.repository.save(model_)
+
+    info_models = model.repository.get_general_info()
+    return info_models
+
+
+@app.get("/get_prediction")
+async def get_prediction(route_id: int):
+    if model.repository.is_empty():
+        return None
+    else:
+        route_ = route.repository.get(route_id)
+        model_ = model.repository.get_better_mape()
+        predict_ = predict.Predict(model=model_,
+                                   route=route_,
+                                   virtual_ride=True)
+        return predict_.get_prediction()
 
 
 @app.get("/get_map")

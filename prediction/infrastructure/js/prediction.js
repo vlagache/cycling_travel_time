@@ -6,7 +6,7 @@ jQuery(document).ready(function(){
 
         $(document).ajaxStop(function(){
         // reactivation of the button
-        $('#segmentation').removeClass('disabled')
+        $('#prediction_btn').removeClass('disabled')
         $("#circle_loading").hide()
 
     })
@@ -14,20 +14,26 @@ jQuery(document).ready(function(){
 //    Select Routes
      $('select').select();
 
-     $('#segmentation').on( 'click', function(e){
-        $('#segmentation').addClass('disabled')
+     $('#prediction_btn').on( 'click', function(e){
+        $('#prediction_btn').addClass('disabled')
+        $('.prediction_time').hide()
         route_id = $('#route_choice option:selected').val()
         e.preventDefault();
         let options = {
             method:'GET',
-            url:'/test_segmentation?route_id=' + route_id
+            url:'/get_prediction?route_id=' + route_id
         }
         $.ajax(options).done(response => {
-            $(".segmentation_info").text(response)
-            console.log(response)
+            if(response == null) {
+                $(".prediction_time").text("Pas de modeles entrainés")
+                $('.prediction_time').show()
+            } else {
+                $(".prediction_time").text(
+                response.hours+"h"+response.minutes+"min"+response.seconds+"s , Vitesse : "+response.avg_speed_kmh+"km/h"
+                )
+                $('.prediction_time').show()
+            }
         })
-
-//        console.log($('#route_choice option:selected').val());
      });
 
 //     Loading Map of Route
@@ -36,10 +42,11 @@ jQuery(document).ready(function(){
         $('#map_route').empty()
         $('#map_segmentation_route').empty()
         $('#segments').empty()
+        $('.prediction_time').hide()
         e.preventDefault();
         get_map(value);
         get_segmentation_map(value);
-        get_segmentation(value);
+//        get_segmentation(value);
      });
 
 
@@ -63,21 +70,21 @@ jQuery(document).ready(function(){
         })
      });
 
-     var get_segmentation=(function(value){
-        let options = {
-            method:'GET',
-            url: '/get_segmentation?route_id=' + value
-        }
-        $.ajax(options).done(response => {
-            $.each(response, function(index , segment){
-                $('#segments').append(
-                    "<p class='segment'> Segment " +  (index+1) + " : distance : " + segment.distance +
-                     " , altitude_gain " + segment.altitude_gain +", average_grade : "
-                     + segment.average_grade +  " </p>"
-                )
-            });
-        })
-     });
+//     var get_segmentation=(function(value){
+//        let options = {
+//            method:'GET',
+//            url: '/get_segmentation?route_id=' + value
+//        }
+//        $.ajax(options).done(response => {
+//            $.each(response, function(index , segment){
+//                $('#segments').append(
+//                    "<p class='segment'> Segment " +  (index+1) + " : distance : " + segment.distance +
+//                     " , altitude_gain " + segment.altitude_gain +", average_grade : "
+//                     + segment.average_grade +  " </p>"
+//                )
+//            });
+//        })
+//     });
 
 
 

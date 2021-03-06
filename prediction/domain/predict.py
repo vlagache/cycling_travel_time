@@ -11,9 +11,6 @@ from prediction.domain.route import Route
 from utils.functions import convert_seconds_in_hms
 
 
-# TODO: WARNING !!!!!!! Pensez à verifier que les features sont bien
-#  dans le meme ordre entre l'entrainement et la prédiction => Trier chaque dict dans le meme ordre
-
 class Predict:
     directory_models = './models/'
 
@@ -156,17 +153,6 @@ class Predict:
         ]
         return np.array(formatted_data)
 
-    def get_prediction(self, data: np.array):
-        prediction_segments = self.loaded_model.predict(data)
-
-        if "log_label" in self.model.processing:
-            prediction = sum(np.exp(prediction_segments))
-        else:
-            prediction = sum(prediction_segments)
-
-        return convert_seconds_in_hms(prediction)
-
-
     def prepare_data(self):
 
         # format date_str to date
@@ -197,4 +183,25 @@ class Predict:
         data_to_predict = self.ordered_data(data_to_predict)
         data_to_predict = self.data_formatting(data_to_predict)
 
-        return self.get_prediction(data_to_predict)
+        return data_to_predict
+
+    def get_prediction(self):
+
+        data = self.prepare_data()
+        prediction_segments = self.loaded_model.predict(data)
+
+        if "log_label" in self.model.processing:
+            prediction = sum(np.exp(prediction_segments))
+        else:
+            prediction = sum(prediction_segments)
+
+        avg_speed_kmh = (self.route.distance / prediction) * 3.6
+        avg_speed_kmh = round(avg_speed_kmh, 2)
+        hours, minutes, seconds = convert_seconds_in_hms(prediction)
+
+        return {
+            "hours": hours,
+            "minutes": minutes,
+            "seconds": seconds,
+            "avg_speed_kmh": avg_speed_kmh
+        }
