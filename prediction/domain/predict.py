@@ -14,7 +14,7 @@ from utils.functions import convert_seconds_in_hms
 class Predict:
     directory_models = './models/'
 
-    def __init__(self, model: Model, route: Route, virtual_ride: bool):
+    def __init__(self, model: Model, route: Route, virtual_ride):
         self.model = model
         self.route = route
         self.virtual_ride = virtual_ride

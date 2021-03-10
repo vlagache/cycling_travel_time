@@ -4,7 +4,7 @@ jQuery(document).ready(function(){
         $("#circle_loading").show()
     })
 
-        $(document).ajaxStop(function(){
+    $(document).ajaxStop(function(){
         // reactivation of the button
         $('#prediction_btn').removeClass('disabled')
         $("#circle_loading").hide()
@@ -14,26 +14,48 @@ jQuery(document).ready(function(){
 //    Select Routes
      $('select').select();
 
-     $('#prediction_btn').on( 'click', function(e){
-        $('#prediction_btn').addClass('disabled')
-        $('.prediction_time').hide()
-        route_id = $('#route_choice option:selected').val()
+     $('#checkbox_btn').on( 'click', function(e){
+        virtual_ride = $('#virtual_ride').prop('checked')
+        virtual_ride
+        test = 1
         e.preventDefault();
         let options = {
             method:'GET',
-            url:'/get_prediction?route_id=' + route_id
+            url:'/virtual_ride?var=' + virtual_ride + '&test=' + test
         }
         $.ajax(options).done(response => {
-            if(response == null) {
-                $(".prediction_time").text("Pas de modeles entrainés")
-                $('.prediction_time').show()
-            } else {
-                $(".prediction_time").text(
-                response.hours+"h"+response.minutes+"min"+response.seconds+"s , Vitesse : "+response.avg_speed_kmh+"km/h"
-                )
-                $('.prediction_time').show()
-            }
+            console.log(response)
+
         })
+
+     })
+
+     $('#prediction_btn').on( 'click', function(e){
+        if ($('#route_choice option:selected').val() != 0) {
+            $('#prediction_btn').addClass('disabled')
+            $('.prediction_time').hide()
+            route_id = $('#route_choice option:selected').val()
+            virtual_ride = $('#virtual_ride').prop('checked')
+            e.preventDefault();
+            let options = {
+                method:'GET',
+                url:'/get_prediction?route_id=' + route_id + '&virtual_ride=' + virtual_ride
+            }
+            $.ajax(options).done(response => {
+                if(response == null) {
+                    $(".prediction_time").text("Pas de modeles entrainés")
+                    $('.prediction_time').show()
+                } else {
+                    $(".prediction_time").text(
+                    response.hours+"h"+response.minutes+"min"+response.seconds+"s , Vitesse : "+response.avg_speed_kmh+"km/h"
+                    )
+                    $('.prediction_time').show()
+                }
+            })
+        } else {
+            $(".prediction_time").text("Pas de route selectionné")
+            $('.prediction_time').show()
+        }
      });
 
 //     Loading Map of Route

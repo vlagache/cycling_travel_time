@@ -54,11 +54,6 @@ class Model:
         for activity_ in activities:
             del activity_['segment_efforts']
 
-        # activities_df = pd.DataFrame(activities)
-        # activities_df = activities_df.drop(columns='segment_efforts')
-        # segments_df = pd.DataFrame(segments)
-        # return activities_df, segments_df
-
         return activities, segments
 
     @staticmethod
@@ -72,12 +67,6 @@ class Model:
 
         item_list = sorted(item_list, key=lambda x: x['start_date'], reverse=True)
         return item_list
-
-        # dataframe['start_date_local'] = pd.to_datetime(dataframe['start_date_local'])
-        # dataframe['start_time'] = dataframe['start_date_local'].dt.time
-        # dataframe['start_date'] = dataframe['start_date_local'].dt.date
-        # dataframe = dataframe.drop(columns=['start_date_local'])
-        # return dataframe
 
     @staticmethod
     def format_date_to_str(item_list: List):
@@ -97,9 +86,6 @@ class Model:
             segment_ for segment_ in self.segments if segment_.get('maximum_grade') < 50
         ]
 
-        # huge_max_index = self.segments.loc[self.segments['maximum_grade'] > 50].index
-        # self.segments = self.segments.drop(huge_max_index)
-
         # double segment in same activity
         unique_segments = []
         for segment_ in self.segments:
@@ -108,16 +94,10 @@ class Model:
 
         self.segments = unique_segments
 
-        # double_index = self.segments[self.segments.duplicated()].index
-        # self.segments = self.segments.drop(double_index)
-
         # self.segments too long
         self.segments = [
             segment_ for segment_ in self.segments if segment_.get('distance') < 25000
         ]
-
-        # too_long_index = self.segments.loc[self.segments['distance'] > 25000].index
-        # self.segments = self.segments.drop(too_long_index)
 
         # low heart_rate
         # We keep the None, which are activities performed without a cardiac sensor.
@@ -127,14 +107,8 @@ class Model:
             if segment_.get('average_heart_rate') is None or segment_.get('average_heart_rate') > 100
         ]
 
-        # wrong_heart_rate_index = self.segments.loc[self.segments['average_heart_rate'] < 100].index
-        # self.segments = self.segments.drop(wrong_heart_rate_index)
-
         end_shape = (len(self.segments), len(self.segments[0]))
 
-        # self.segments = self.segments.reset_index(drop=True)
-        # end_shape = self.segments.shape
-        #
         self.cleaning_result = {
             'initial_shape': initial_shape,
             'end_shape': end_shape
@@ -147,16 +121,12 @@ class Model:
             activity_ for activity_ in self.activities if start_date <= activity_.get("start_date") <= end_date
         ]
 
-        # return self.activities[self.activities['start_date'].between(start_date, end_date)]
-
     def segments_last_30d(self, date_: date) -> List[Dict]:
         end_date = date_ - timedelta(days=1)
         start_date = end_date - timedelta(days=30)
         return [
             segment_ for segment_ in self.segments if start_date <= segment_.get("start_date") <= end_date
         ]
-
-        # return self.segments[self.segments['start_date'].between(start_date, end_date)]
 
     def time_activities_last_30d(self) -> None:
 
@@ -168,14 +138,6 @@ class Model:
 
         self.features_added.append('time_activities_last_30d')
 
-        # time_activities_last_30d = []
-        # for date in self.segments['start_date']:
-        #     result = self.activities_last_30d(date)
-        #     time_activities = round((result['elapsed_time'].sum() / 60), 2)
-        #     time_activities_last_30d.append(time_activities)
-        # self.segments['time_activities_last_30d'] = time_activities_last_30d
-        # self.features_added.append('time_activities_last_30d')
-
     def type_virtual_ride(self) -> None:
         for segment_ in self.segments:
             if segment_.get("type") == "VirtualRide":
@@ -184,10 +146,6 @@ class Model:
                 segment_['type_virtual_ride'] = 0
             del segment_['type']
         self.features_added.append('type_virtual_ride')
-
-        # self.segments = pd.get_dummies(self.segments, columns=['type'], drop_first=True)
-        # self.segments = self.segments.rename(columns={'type_VirtualRide': 'type_virtual_ride'})
-        # self.features_added.append('type_virtual_ride')
 
     def days_since_last_activity(self) -> None:
         result = None
@@ -204,20 +162,6 @@ class Model:
             segment_['days_since_last_activity'] = result
         self.features_added.append('days_since_last_activity')
 
-        # days_since_last_activity = []
-        # for activity_id in self.segments['activity_id']:
-        #     try:
-        #         index_activity = self.activities.loc[self.activities['id'] == activity_id].index
-        #         result = self.activities.loc[index_activity]['start_date'].values[0] - \
-        #                  self.activities.loc[index_activity + 1]['start_date'].values[0]
-        #         result = result.days
-        #     except KeyError:
-        #         result = 0
-        #
-        #     days_since_last_activity.append(result)
-        # self.segments['days_since_last_activity'] = days_since_last_activity
-        # self.features_added.append('days_since_last_activity')
-
     def average_climb_cat_last_30d(self) -> None:
         for segment_ in self.segments:
             segments_last_30d = self.segments_last_30d(segment_.get("start_date"))
@@ -229,16 +173,6 @@ class Model:
                 avg_climb_cat = 0
             segment_['average_climb_cat_last_30d'] = avg_climb_cat
         self.features_added.append('average_climb_cat_last_30d')
-
-        # average_climb_cat_last_30d = []
-        # for date in self.segments['start_date']:
-        #     result = self.segments_last_30d(date)
-        #     avg_climb_cat = result['climb_category'].mean()
-        #     if np.isnan(avg_climb_cat):
-        #         avg_climb_cat = 0
-        #     average_climb_cat_last_30d.append(round(avg_climb_cat, 2))
-        # self.segments['average_climb_cat_last_30d'] = average_climb_cat_last_30d
-        # self.features_added.append('average_climb_cat_last_30d')
 
     # TODO : Par Climb Category ?
     def average_speed_last_30d(self) -> None:
@@ -252,31 +186,12 @@ class Model:
             segment_['average_speed_last_30d'] = avg_speed_last_30d
         self.features_added.append('average_speed_last_30d')
 
-        # average_speed_last_30d = []
-        # for date in self.segments['start_date']:
-        #     result = self.activities_last_30d(date)
-        #     avg_speed = result['average_speed'].mean()
-        #     if np.isnan(avg_speed):
-        #         avg_speed = 0
-        #     average_speed_last_30d.append(round(avg_speed, 2))
-        # self.segments['average_speed_last_30d'] = average_speed_last_30d
-        # self.features_added.append('average_speed_last_30d')
-
     def split_train_test(self, ratio: float):
 
         for segment_ in self.segments:
             segment_['calendar_day'] = segment_.get("start_date").strftime('%j%Y')
 
-        # calendar_days = []
-        # for date in self.segments['start_date']:
-        #     calendar_day = date.strftime('%j%Y')
-        #     calendar_days.append(calendar_day)
-        # self.segments['calendar_day'] = calendar_days
         #
-
-        dates_unique = list(set(
-            segment_.get('calendar_day') for segment_ in self.segments
-        ))
 
         dates_unique = []
         for segment_ in self.segments:
@@ -284,10 +199,6 @@ class Model:
                 dates_unique.append(segment_.get('calendar_day'))
 
         ratio_train_test = len(dates_unique) * ratio
-
-        # dates_unique = self.segments['calendar_day'].unique()
-        # dates_unique = dates_unique.tolist()
-        # ratio_train_test = len(dates_unique) * ratio
 
         random.seed(42)
         dates_test_set = random.sample(dates_unique, int(ratio_train_test))
@@ -300,16 +211,12 @@ class Model:
             segment_ for segment_ in self.segments if segment_.get('calendar_day') not in dates_test_set
         ]
 
-        # test_set = self.segments[self.segments['calendar_day'].isin(dates_test_set)]
-        # train_set = self.segments.drop(test_set.index)
-
         x_train = [
             [value for key, value in segment_.items() if key in self.features_train] for segment_ in train_set
         ]
 
         y_train = [
             segment_.get(self.label) for segment_ in train_set
-            # value for key, value in segment_.items() for segment_ in train_set if key == self.label
         ]
 
         x_test = [
@@ -318,23 +225,10 @@ class Model:
 
         y_test = [
             segment_.get(self.label) for segment_ in test_set
-            # value for key, value in segment_.items() if key == self.label for segment_ in test_set
         ]
 
         self.ratio_train_total = round(len(train_set) / len(self.segments), 2)
         return np.array(x_train), np.array(y_train), np.array(x_test), np.array(y_test)
-
-        # train_set = train_set[self.features_train]
-        # test_set = test_set[self.features_train]
-        #
-        # y_train = train_set["elapsed_time"]
-        # x_train = train_set.drop("elapsed_time", axis=1)
-        # y_test = test_set["elapsed_time"]
-        # x_test = test_set.drop("elapsed_time", axis=1)
-        #
-        # self.ratio_train_total = round((train_set.shape[0] / self.segments.shape[0]), 2)
-        #
-        # return x_train, y_train, x_test, y_test
 
     def log_label(self, y_train: np.array) -> np.array:
         y_train_log = [
@@ -342,11 +236,6 @@ class Model:
         ]
         self.processing.append("log_label")
         return y_train_log
-
-        #
-        # label = np.log(label)
-        # self.processing.append("log_label")
-        # return label
 
     def fit_predict(self, model, x_train, y_train, x_test):
         model.fit(x_train, y_train)
@@ -423,7 +312,7 @@ class Model:
         self.model = type(self.model.value).__name__
         self.logging_meta_data()
 
-        # format date to str
+        # format date to str for elastic
         self.activities = self.format_date_to_str(self.activities)
         self.segments = self.format_date_to_str(self.segments)
 

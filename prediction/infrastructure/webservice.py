@@ -1,3 +1,4 @@
+import logging
 import os
 import urllib.parse
 from typing import Optional
@@ -5,6 +6,7 @@ from typing import Optional
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -19,6 +21,19 @@ from prediction.infrastructure.import_strava import ImportStrava
 
 load_dotenv()
 app = FastAPI()
+
+origins = [
+    "http://localhost:8090"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 athlete.repository = ElasticAthleteRepository()
@@ -33,6 +48,13 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
 ################# DEBUG
+
+@app.get("/virtual_ride")
+async def get_prediction(var: bool, test=int):
+    if var:
+        return f"Virtual Ride{test}"
+    else:
+        return f"Real Ride{test}"
 
 
 ###################
@@ -114,7 +136,7 @@ async def train_models():
 
 
 @app.get("/get_prediction")
-async def get_prediction(route_id: int):
+async def get_prediction(route_id: int, virtual_ride: bool):
     if model.repository.is_empty():
         return None
     else:
@@ -122,7 +144,7 @@ async def get_prediction(route_id: int):
         model_ = model.repository.get_better_mape()
         predict_ = predict.Predict(model=model_,
                                    route=route_,
-                                   virtual_ride=True)
+                                   virtual_ride=virtual_ride)
         return predict_.get_prediction()
 
 
@@ -192,6 +214,8 @@ async def strava_token(code: Optional[str] = None):
         athlete.repository.save(athlete_)
 
         response = RedirectResponse("/authenticated_user")
-        response.set_cookie(key="athlete_id", value=str(athlete_.id))
+        response.set_cookie(key="athlete_id",
+                            value=str(athlete_.id),
+                            samesite="Strict")
 
         return response
