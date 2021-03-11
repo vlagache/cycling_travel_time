@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %} Connexion {% endblock %}
+
+{% block content %}
+<div class="container" id="container_test">
+
+    <div class="row form-user">
+
+        <form id="form_test" action="/" method="post">
+
+            <div class="row center-align">
+                <img class="cycle" src="images/cycle.png"  alt="cycle">
+            </div>
+
+            <div class="row center-align">
+                <h3>Cycling Travel Time</h3>
+            </div>
+
+            <p>Prédiction d'un temps de trajet à vélo</p>
+
+
+            <div class="row">
+                <div class="input-field col s6 offset-s3">
+                    <input id="firstname" name="firstname" type="text" class="validate">
+                    <label for="firstname">Prénom</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s6 offset-s3">
+                    <input id="lastname" name="lastname" type="text" class="validate">
+                    <label for="lastname">Nom</label>
+                </div>
+            </div>
+
+
+            <p class="center-align">
+                <input type="submit" value="Connexion" class="btn center-align orange darken-4">
+            </p>
+
+
+        </form>
+
+    </div>
+</div>
+
+
+<p class="pwdstrava">
+    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" class="pwdstrava" alt="logo powered by strava">
+</p>
+
+{% endblock %}
+

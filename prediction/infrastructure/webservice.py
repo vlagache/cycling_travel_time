@@ -62,7 +62,7 @@ async def get_prediction(var: bool, test=int):
 
 @app.get("/", response_class=HTMLResponse)
 async def check_user(request: Request):
-    return templates.TemplateResponse("check_user.html", {"request": request})
+    return templates.TemplateResponse("connexion.html", {"request": request})
 
 
 @app.post("/")

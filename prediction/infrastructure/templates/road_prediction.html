@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
-    <!-- Compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-</head>
-<body>
+{% extends 'base.html' %}
 
+{% block title %} Prédiction {% endblock %}
+
+{% block content %}
 
 <div class="container">
     <div id="routes_segmentation" class="row">
@@ -91,11 +84,9 @@
     <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
 </p>
 
+{% endblock %}
 
-<!-- Compiled and minified JavaScript -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{%block js_script%}
 <script src="js/prediction.js"></script>
-<script>M.AutoInit();</script>
-</body>
-</html>
+{% endblock %}
+
