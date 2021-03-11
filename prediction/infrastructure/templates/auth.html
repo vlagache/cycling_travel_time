@@ -1,10 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<p class="authstrava">
-    <a href="/strava_authorize" class="center-align"><img src=" images/btn_strava_connectwith_orange.png"/></a>
 
-</p>
+<div class="container" id="container_test">
+    <div id="content">
+        <div class="row">
+            <blockquote class="input-field col s6 offset-s3">
+                L'utilisation de cette application nécessite que vous l'autorisiez à accéder à vos données Strava.
+            </blockquote>
+        </div>
+
+        <p class="center-align">
+            <a href="/strava_authorize"><img src=" images/btn_strava_connectwith_orange.png"/></a>
+        </p>
+    </div>
+
+    <p class="back">
+        <a class="btn orange darken-4" href="/"><i class="material-icons left">arrow_back_ios</i>Retour</a>
+    </p>
+
+
+</div>
 
 
 <p class="pwdstrava">

@@ -3,21 +3,30 @@
 {% block title %} Connexion {% endblock %}
 
 {% block content %}
-<div class="container" id="container_test">
+<div class="container">
 
     <div class="row form-user">
 
-        <form id="form_test" action="/" method="post">
+        <form action="/" method="post">
 
             <div class="row center-align">
-                <img class="cycle" src="images/cycle.png"  alt="cycle">
+                <img class="cycle" src="images/cycle.png" alt="cycle">
             </div>
 
             <div class="row center-align">
-                <h3>Cycling Travel Time</h3>
+                <h4>Cycling Travel Time</h4>
             </div>
 
-            <p>Prédiction d'un temps de trajet à vélo</p>
+            <div class="row">
+                <blockquote class="input-field col s6 offset-s3">
+                    Cycling Travel Time est un projet étudiant, dont le but est de prédire une durée de déplacement à
+                    vélo
+                    par l'entrainement d'un modele de Machine Learning sur les données d'entrainements passés.
+                    L'utilisation de cette application
+                    necessite d'avoir un <a href="https://www.strava.com/register/free?hl=fr-FR">compte Strava</a> sur
+                    lequel des activités ont été enregistrés.
+                </blockquote>
+            </div>
 
 
             <div class="row">

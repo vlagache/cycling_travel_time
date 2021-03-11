@@ -33,24 +33,61 @@ body {
  color:#e65100 !important;
 }
 
-.authstrava{
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-
 .pwdstrava{
     position:fixed;
     bottom:0;
     right:0;
 }
 
+/* Connexion Page */
+
+blockquote {
+    border-left: 5px solid #e65100 !important;
+    text-align: justify;
+}
+
+.cycle {
+    width:20%;
+    height:20%;
+    margin-top:2%;
+    margin-bottom:3%;
+}
+
+/* Auth Strava Page */
+#content {
+   margin-top:20%;
+   margin-bottom:20%;
+}
+.back {
+    position:relative;
+    left:0;
+    bottom:0;
+
+}
+
+/* Auth User Page */
+.underline_title {
+    border-top: 5px solid #e65100;
+    width:60%;
+    margin-left:20%;
+    margin-bottom:10%;
+}
+
+.collection .collection-item {
+    background-color:lightgrey !important;
+}
+/*
+.test {
+    border:3px solid red;
+}
+
+.container_test{
+    border:5px solid black;
+}
+*/
+
 #circle_loading{
   display: none;
-  position:absolute;
-  right:50%;
 }
 
 #map_route, #map_segmentation_route{
@@ -61,15 +98,3 @@ body {
     height:50%;
 }
 
-.cycle {
-    width:35%;
-    height:35%;
-}
-#form_test {
-    border:5px solid black;
-}
-
-#container_test {
-    border:5px solid red;
-    height:100%;
-}

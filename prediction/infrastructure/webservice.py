@@ -83,13 +83,16 @@ async def main(request: Request):
 
 
 @app.get("/authenticated_user", response_class=HTMLResponse)
-async def authenticated_user(request: Request):
+async def authenticated_user(request: Request,
+                             athlete_id: str = Cookie(None)):
+    athlete_ = athlete.repository.get(athlete_id)
     info_activities = activity.repository.get_general_info()
     info_routes = route.repository.get_general_info()
     info_models = model.repository.get_general_info()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
+                                       "athlete": athlete_,
                                        "info_activities": info_activities,
                                        "info_routes": info_routes,
                                        "info_models": info_models})
