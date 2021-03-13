@@ -18,72 +18,149 @@
     </div>
 
     <div class="row">
+        <div class="database_img center-align">
+            <img src="images/database.png" alt="activity">
+        </div>
+    </div>
+
+
+    <div class="lines">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div class="line3"></div>
+    </div>
+
+
+    <div class="row">
 
         <div id="activities" class="col s4 test">
-            <h3 id="title_activities" class="center-align">Activités</h3>
-            <p class="center-align underline_title"></p>
 
-            {% if info_activities is not none %}
-            <ul class="info_activities collection">
-                <li class="collection-item"> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></li>
-                <li class="collection-item"> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></li>
-                <li class="collection-item"> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></li>
-            </ul>
-            {% else %}
-            <ul class="info_activities" style="display: none;">
-                <li class="collection-item"> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span></li>
-                <li class="collection-item"> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span></li>
-                <li class="collection-item"> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span></li>
-            </ul>
-            <p class="no_activities"> Aucune activité en base pour le moment...</p>
-            {% endif %}
+            <div class="activities_img center-align">
+                <img class="icon" src="images/cycling.png" alt="activity">
+            </div>
 
-            <a id="update_activities" class="waves-effect waves-light btn orange darken-4">Update Activities</a>
+            <div id="info_activities">
+
+
+                {% if info_activities.activities_in_base is not none %}
+                <div class="activities_in_base center-align">{{ info_activities.activities_in_base }}</div>
+                {% else %}
+                <div class="activities_in_base center-align">0</div>
+                {% endif %}
+
+                <p class="registered_activities center-align">Activités enregistrées</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_activity center-align"> Dernière activitée enregistrée</p>
+
+
+                {% if info_activities.activities_in_base is not none %}
+                <div class="info_last_activity">
+                    <p class="name_last_activity center-align">{{ info_activities.name_last_activity }}</p>
+                    <p class="date_last_activity center-align"> réalisé à {{ info_activities.date_last_activity }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_activity" style="display :none;">
+                    <p class="name_last_activity center-align">{{ info_activities.name_last_activity }}</p>
+                    <p class="date_last_activity center-align"> réalisé le {{ info_activities.date_last_activity }}</p>
+                </div>
+                <p class="no_activities center-align">Aucune activité connue</p>
+                {% endif %}
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+
+            <p class="center-align">
+                <a id="update_activities" class="waves-effect waves-light btn-small orange darken-4">Update
+                    activities</a>
+            </p>
+
 
         </div>
 
         <div id="routes" class="col s4 test">
 
-            <h3 class="center-align">Routes</h3>
-            <p class="center-align underline_title"></p>
 
-            {% if info_routes is not none %}
-            <div class="info_routes">
-                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
-                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span></p>
+            <div class="routes_img center-align">
+                <img class="icon" src="images/road.png" alt="road">
             </div>
-            {% else %}
-            <div class="info_routes" style="display :none;">
-                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
-                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span></p>
-            </div>
-            <p class="no_routes"> Aucune route en base pour le moment...</p>
-            {% endif %}
 
-            <a id="update_routes" class="waves-effect waves-light btn orange darken-4">Update Routes</a>
+            <div id="info_routes">
+
+                {% if info_routes.routes_in_base is not none %}
+                <div class="routes_in_base center-align">{{ info_routes.routes_in_base }}</div>
+                {% else %}
+                <div class="routes_in_base center-align">0</div>
+                {% endif %}
+
+
+                <p class="registered_routes center-align">Routes enregistrées</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_route center-align"> Dernière route enregistrée</p>
+
+
+                {% if info_routes.routes_in_base is not none %}
+                <div class="info_last_route">
+                    <p class="name_last_route center-align">{{ info_routes.name_last_route }}</p>
+                    <p class="date_last_route center-align"> crée le {{ info_routes.date_last_route }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_route" style="display :none;">
+                    <p class="name_last_route center-align">{{ info_routes.name_last_route }}</p>
+                    <p class="date_last_route center-align"> crée le {{ info_routes.date_last_route }}</p>
+                </div>
+                <p class="no_routes center-align">Aucune route connue</p>
+                {% endif %}
+
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+            <p class="center-align">
+                <a id="update_routes" class="waves-effect waves-light btn-small orange darken-4">Update Routes</a>
+            </p>
 
         </div>
 
-        <div class="col s4 test">
-            <h3 class="center-align">Modeles</h3>
-            <p class="center-align underline_title"></p>
+        <div id="models" class="col s4 test">
 
-            {% if info_models is not none %}
-            <div class="info_models">
-                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>
-                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span></p>
+            <div class="models_img center-align">
+                <img class="ml_icon" src="images/ml.png" alt="machine learning">
             </div>
-            {% else %}
-            <div class="info_models" style="display :none;">
-                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>
-                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span></p>
-            </div>
-            <p class="no_models">Aucun modèle en base pour le moment...</p>
-            {% endif %}
 
-            <a id="update_models" class="waves-effect waves-light btn orange darken-4">Entrainement</a>
+            <div id="info_models">
+
+                {% if info_models.models_in_base is not none %}
+                <div class="models_in_base center-align">{{ info_models.models_in_base }}</div>
+                {% else %}
+                <div class="models_in_base center-align">0</div>
+                {% endif %}
+
+                <p class="registered_models center-align">Modèles enregistrés</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_model center-align"> Dernier modèle enregistré</p>
+
+                {% if info_models.models_in_base is not none %}
+                <div class="info_last_model">
+                    <p class="date_last_model center-align"> entrainé le {{ info_models.date_last_model }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_model" style="display :none;">
+                    <p class="date_last_model center-align"> entrainé le {{ info_models.date_last_model }}</p>
+                </div>
+                <p class="no_models center-align">Aucun modèle entrainé</p>
+                {% endif %}
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+            <p class="center-align">
+                <a id="update_models" class="waves-effect waves-light btn-small orange darken-4">Entrainement</a>
+            </p>
+
         </div>
     </div>
 
@@ -101,126 +178,19 @@
         </div>
     </div>
 
+    <div class="row">
+        <p class="pwdstrava center-align">
+            <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
+        </p>
+    </div>
+
+    <!--    <p class="forward">-->
+    <!--        <a class="btn orange darken-4" href="/road_prediction"><i class="material-icons right">arrow_forward_ios</i>Prediction</a>-->
+    <!--    </p>-->
+
 
 </div>
 
-<!--<div class="container">-->
-
-<!--    <p>{{ athlete.firstname}}</p>-->
-<!--    <p>{{ athlete.lastname}}</p>-->
-
-<!--    -->
-<!--    <div id="database_infos" class="row">-->
-<!--        <div class="col s11 push-s1">-->
-
-<!--            <h2>Activités</h2>-->
-
-<!--            {% if info_activities is not none %}-->
-<!--            <div class="info_activities">-->
-<!--                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>-->
-<!--                </p>-->
-<!--                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>-->
-<!--                </p>-->
-<!--                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            {% else %}-->
-<!--            <div class="info_activities" style="display: none;">-->
-<!--                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>-->
-<!--                </p>-->
-<!--                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>-->
-<!--                </p>-->
-<!--                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            <p class="no_activities"> Aucune activité en base pour le moment...</p>-->
-<!--            {% endif %}-->
-
-<!--            <a id="update_activities" class="waves-effect waves-light btn orange darken-4">Update Activities</a>-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <div id="routes" class="row">-->
-<!--        <div class="col s11 push-s1">-->
-
-<!--            <h2>Routes</h2>-->
-
-<!--            {% if info_routes is not none %}-->
-<!--            <div class="info_routes">-->
-<!--                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>-->
-<!--                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>-->
-<!--                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            {% else %}-->
-<!--            <div class="info_routes" style="display :none;">-->
-<!--                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>-->
-<!--                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>-->
-<!--                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            <p class="no_routes"> Aucune route en base pour le moment...</p>-->
-<!--            {% endif %}-->
-
-<!--            <a id="update_routes" class="waves-effect waves-light btn orange darken-4">Update Routes</a>-->
-
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <div id="models" class="row">-->
-<!--        <div class="col s11 push-s1">-->
-
-<!--            <h2>Modeles</h2>-->
-
-<!--            {% if info_models is not none %}-->
-<!--            <div class="info_models">-->
-<!--                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>-->
-<!--                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            {% else %}-->
-<!--            <div class="info_models" style="display :none;">-->
-<!--                <p> Nombre de modèles en base : <span class="models_in_base">{{ info_models.models_in_base}}</span></p>-->
-<!--                <p> Date/Heure du dernier entrainement d'un modèle : <span class="date_last_model">{{ info_models.date_last_model}}</span>-->
-<!--                </p>-->
-<!--            </div>-->
-<!--            <p class="no_models">Aucun modèle en base pour le moment...</p>-->
-<!--            {% endif %}-->
-
-<!--            <a id="update_models" class="waves-effect waves-light btn orange darken-4">Entrainement</a>-->
-
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <div id="circle_loading" class="preloader-wrapper active center-align">-->
-<!--        <div class="spinner-layer spinner-red-only">-->
-<!--            <div class="circle-clipper left">-->
-<!--                <div class="circle"></div>-->
-<!--            </div>-->
-<!--            <div class="gap-patch">-->
-<!--                <div class="circle"></div>-->
-<!--            </div>-->
-<!--            <div class="circle-clipper right">-->
-<!--                <div class="circle"></div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-
-
-<!--    <div id="other" class="row">-->
-<!--        <div class="col s11 push-s1">-->
-<!--            <p>-->
-<!--                <a class="btn orange darken-4" href="/road_prediction">Prédiction</a>-->
-<!--            </p>-->
-<!--        </div>-->
-<!--    </div>-->
-
-
-<!--</div>-->
-
-<p class="pwdstrava">
-    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
-</p>
 
 {% endblock %}
 

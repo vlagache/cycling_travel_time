@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import elasticsearch
 import jsonpickle
@@ -115,20 +115,24 @@ class ElasticActivityRepository(ActivityRepository):
             for hit in results.get("hits").get("hits")]
         return activities
 
-    def get_general_info(self) -> Optional[dict]:
+    def get_general_info(self) -> Dict:
         if not self.is_empty():
             activities = self.get_all_desc()
             last_activity = activities[0]
-            info_activities = {
-                'activities_in_base': len(activities),
-                'name_last_activity': last_activity.name,
-                'date_last_activity': transforms_string_in_datetime(
-                    last_activity.start_date_local)
-            }
-
-            return info_activities
+            activities_in_base = len(activities)
+            name_last_activity = last_activity.name
+            date_last_activity = transforms_string_in_datetime(
+                last_activity.start_date_local)
         else:
-            return None
+            activities_in_base = None
+            name_last_activity = None
+            date_last_activity = None
+
+        return {
+            'activities_in_base': activities_in_base,
+            'name_last_activity': name_last_activity,
+            'date_last_activity': date_last_activity,
+        }
 
     def save(self, activity: Activity):
         return self.elastic.store_data(
@@ -227,21 +231,24 @@ class ElasticRouteRepository(RouteRepository):
             for hit in results.get("hits").get("hits")]
         return routes
 
-    def get_general_info(self) -> Optional[dict]:
+    def get_general_info(self) -> Dict:
         if not self.is_empty():
             routes = self.get_all_desc()
 
             last_route = routes[0]
-            info_routes = {
-                'routes_in_base': len(routes),
-                'name_last_route': last_route.name,
-                'date_last_route': transforms_string_in_datetime(
-                    last_route.created_at)
-            }
-
-            return info_routes
+            routes_in_base = len(routes)
+            name_last_route = last_route.name
+            date_last_route = transforms_string_in_datetime(last_route.created_at)
         else:
-            return None
+            routes_in_base = None
+            name_last_route = None
+            date_last_route = None
+
+        return {
+            'routes_in_base': routes_in_base,
+            'name_last_route': name_last_route,
+            'date_last_route': date_last_route
+        }
 
     def save(self, route: Route):
         return self.elastic.store_data(
@@ -301,13 +308,18 @@ class ElasticModelRepository(ModelRepository):
             models = sorted(models, key=lambda model_: model_.training_date, reverse=True)
             last_model_trained = models[0]
 
-            info_models = {
-                'models_in_base': len(models),
-                'date_last_model': last_model_trained.training_date
-            }
-            return info_models
+            models_in_base = len(models)
+            date_last_model = last_model_trained.training_date
+
+
         else:
-            return None
+            models_in_base = None
+            date_last_model = None
+
+        return {
+            'models_in_base': models_in_base,
+            'date_last_model': date_last_model
+        }
 
     def get_better_mape(self) -> Model:
         """

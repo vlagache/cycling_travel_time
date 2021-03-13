@@ -34,9 +34,7 @@ body {
 }
 
 .pwdstrava{
-    position:fixed;
-    bottom:0;
-    right:0;
+    margin-top:5%;
 }
 
 /* Connexion Page */
@@ -46,7 +44,7 @@ blockquote {
     text-align: justify;
 }
 
-.cycle {
+.icon {
     width:20%;
     height:20%;
     margin-top:2%;
@@ -66,25 +64,119 @@ blockquote {
 }
 
 /* Auth User Page */
+
+
+
+.lines {
+    width: 500px;
+    height: 115px;
+    padding: 0;
+    margin: 0 auto;
+    margin-bottom:5%;
+
+}
+.line1 {
+    width: 215px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(68px)
+        translateX(10px)
+        rotate(145deg);
+    position: absolute;
+}
+.line2 {
+    width: 120px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(48px)
+        translateX(210px)
+        rotate(90deg);
+    position: absolute;
+}
+.line3 {
+    width: 215px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(39px)
+        translateX(295px)
+        rotate(37deg);
+    position: absolute;
+}
+
+
+
+.ml_icon {
+    width:20%;
+    height:20%;
+    margin-top:2%;
+    margin-bottom:3%;
+    margin-left:8%;
+}
+
 .underline_title {
-    border-top: 5px solid #e65100;
+    border-top: 1px solid #e65100;
     width:60%;
     margin-left:20%;
-    margin-bottom:10%;
+    margin-top:5%;
+    margin-bottom:5%;
 }
 
 .collection .collection-item {
     background-color:lightgrey !important;
 }
-/*
-.test {
-    border:3px solid red;
+
+.activities_in_base, .routes_in_base, .models_in_base {
+    font-family: 'Righteous', sans-serif;
+    color: #e65100;
+    font-size: 5em;
 }
 
-.container_test{
-    border:5px solid black;
+.registered_activities,
+.last_registered_activity,
+.no_new_activities,
+.registered_routes,
+.last_registered_route,
+.no_new_routes,
+.registered_models,
+.last_registered_model {
+    font-weight: bold;
+    font-size:0.9em;
+}
+
+.info_last_activity,
+.no_activities,
+.info_last_route,
+.no_routes,
+.info_last_model,
+.no_models {
+    font-weight: bold;
+    margin-top: 8%;
+    color: #e65100;
+
+}
+
+/*
+#info_activities,
+#info_routes,
+#info_models {
+    border:3px solid green;
+}
+
+.activities_in_base,
+.routes_in_base,
+.models_in_base {
+    border:3px solid red;
 }
 */
+
+.forward {
+    position:relative;
+    right:0;
+    bottom:0;
+}
 
 #circle_loading{
   display: none;

@@ -5,23 +5,7 @@ jQuery(document).ready(function(){
     })
 
     $(document).ajaxStop(function(){
-        // reactivation of the button
-        $('#update_activities').removeClass('disabled')
-        $('#update_routes').removeClass('disabled')
-        $('#update_models').removeClass('disabled')
-
         $("#circle_loading").hide()
-
-        // In the case where there is no activities/routes/models in base at the start
-        $(".info_activities").show()
-        $(".no_activities").hide()
-
-        $(".info_routes").show()
-        $(".no_routes").hide()
-
-        $(".info_models").show()
-        $(".no_models").hide()
-
     })
 
 //    Update Activities
@@ -38,10 +22,13 @@ jQuery(document).ready(function(){
             if(response.activities_added > 0){
                 $(".activities_in_base").text(response.activities_in_base)
                 $(".name_last_activity").text(response.name_last_activity)
-                $(".date_last_activity").text(response.date_last_activity)
+                $(".date_last_activity").text('réalisé à ' + response.date_last_activity)
             } else {
                 $("<p class='no_new_activities'> Aucune nouvelle activitée à charger </p>").insertAfter("#update_activities")
             }
+            $(".info_last_activity").show()
+            $(".no_activities").hide()
+            $('#update_activities').removeClass('disabled')
         })
     });
 
@@ -59,10 +46,13 @@ jQuery(document).ready(function(){
             if(response.routes_added > 0){
                 $(".routes_in_base").text(response.routes_in_base)
                 $(".name_last_route").text(response.name_last_route)
-                $(".date_last_route").text(response.date_last_route)
+                $(".date_last_route").text('crée le ' + response.date_last_route)
             } else {
                 $("<p class='no_new_routes'> Aucune nouvelle route à charger </p>").insertAfter("#update_routes")
             }
+            $(".info_last_route").show()
+            $(".no_routes").hide()
+            $('#update_routes').removeClass('disabled')
         })
     });
 
@@ -76,7 +66,10 @@ jQuery(document).ready(function(){
         }
         $.ajax(options).done(response => {
             $(".models_in_base").text(response.models_in_base)
-            $(".date_last_model").text(response.date_last_model)
+            $(".date_last_model").text('entrainé le ' + response.date_last_model)
+            $(".info_last_model").show()
+            $(".no_models").hide()
+            $('#update_models').removeClass('disabled')
         })
     });
 
