@@ -52,21 +52,23 @@ blockquote {
 }
 
 /* Auth Strava Page */
-#content {
-   margin-top:20%;
-   margin-bottom:20%;
-}
-.back {
-    position:relative;
-    left:0;
-    bottom:0;
 
+#authenticated_user{
+    margin-top: 2% !important;
+}
+.strava_link {
+    color: #FC4C02 !important;
+    font-weight:bold !important;
 }
 
+.vertical_line {
+    border-left: 5px dotted #e65100;
+    height:80px;
+    width:2px;
+    margin: 0 auto;
+    margin-bottom:3%;
+}
 /* Auth User Page */
-
-
-
 .lines {
     width: 500px;
     height: 115px;
@@ -134,6 +136,7 @@ blockquote {
     font-size: 5em;
 }
 
+#person_id,
 .registered_activities,
 .last_registered_activity,
 .no_new_activities,
@@ -141,7 +144,8 @@ blockquote {
 .last_registered_route,
 .no_new_routes,
 .registered_models,
-.last_registered_model {
+.last_registered_model,
+.no_activities_for_train {
     font-weight: bold;
     font-size:0.9em;
 }
@@ -158,6 +162,12 @@ blockquote {
 
 }
 
+.no_new_activities,
+.no_new_routes,
+.no_activities_for_train {
+    height:30px;
+}
+
 /*
 #info_activities,
 #info_routes,
@@ -172,14 +182,15 @@ blockquote {
 }
 */
 
-.forward {
-    position:relative;
-    right:0;
-    bottom:0;
-}
 
 #circle_loading{
+  position: fixed;
   display: none;
+  top :0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
 }
 
 #map_route, #map_segmentation_route{

@@ -1,5 +1,5 @@
-import logging
 import os
+import time
 import urllib.parse
 from typing import Optional
 
@@ -129,13 +129,20 @@ async def get_new_routes(athlete_id: str = Cookie(None)):
 
 @app.get("/train_models")
 async def train_models():
-    for type_model in TypeModel:
-        model_ = model.Model(model=type_model)
-        model_.train()
-        model.repository.save(model_)
+    if activity.repository.is_empty():
+        # TODO: Very ugly method to avoid flashing on frontend
+        #  The response is too fast which does not allow time
+        #  for the loading screen to appear
+        time.sleep(3)
+        return None
+    else:
+        for type_model in TypeModel:
+            model_ = model.Model(model=type_model)
+            model_.train()
+            model.repository.save(model_)
 
-    info_models = model.repository.get_general_info()
-    return info_models
+        info_models = model.repository.get_general_info()
+        return info_models
 
 
 @app.get("/get_prediction")
