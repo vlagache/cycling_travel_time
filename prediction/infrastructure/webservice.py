@@ -47,17 +47,27 @@ app.mount("/images", StaticFiles(directory="prediction/infrastructure/images"), 
 templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
-################# DEBUG
+#
 
-@app.get("/virtual_ride")
-async def get_prediction(var: bool, test=int):
-    if var:
-        return f"Virtual Ride{test}"
-    else:
-        return f"Real Ride{test}"
+@app.get("/delete_activities")
+async def delete_activities():
+    activity.repository.delete_recreates_index()
+    return 'Activity index has been deleted and recreated'
 
 
-###################
+@app.get("/delete_routes")
+async def delete_routes():
+    route.repository.delete_recreates_index()
+    return 'Route index has been deleted and recreated'
+
+
+@app.get("/delete_models")
+async def delete_models():
+    model.repository.delete_recreates_index()
+    return 'Model index has been deleted and recreated'
+
+
+#
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -133,7 +143,7 @@ async def train_models():
         # TODO: Very ugly method to avoid flashing on frontend
         #  The response is too fast which does not allow time
         #  for the loading screen to appear
-        time.sleep(3)
+        time.sleep(1.5)
         return None
     else:
         for type_model in TypeModel:

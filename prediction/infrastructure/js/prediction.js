@@ -26,22 +26,6 @@ jQuery(document).ready(function(){
 //    Select Routes
      $('select').select();
 
-     $('#checkbox_btn').on( 'click', function(e){
-        virtual_ride = $('#virtual_ride').prop('checked')
-        virtual_ride
-        test = 1
-        e.preventDefault();
-        let options = {
-            method:'GET',
-            url:'/virtual_ride?var=' + virtual_ride + '&test=' + test
-        }
-        $.ajax(options).done(response => {
-            console.log(response)
-
-        })
-
-     })
-
      $('#prediction_btn').on( 'click', function(e){
         if ($('#route_choice option:selected').val() != 0) {
             $('#prediction_btn').addClass('disabled')

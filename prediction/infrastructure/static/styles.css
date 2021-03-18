@@ -208,7 +208,8 @@ blockquote {
 .no_new_routes,
 .registered_models,
 .last_registered_model,
-.no_activities_for_train {
+.no_activities_for_train,
+.map_description {
     font-weight: bold;
     font-size:0.9em;
 }
@@ -231,6 +232,10 @@ blockquote {
     height:30px;
 }
 /* Prediction */
+
+ul.dropdown-content.select-dropdown li span {
+    color: #000; /* no need for !important :) */
+}
 
 .info_prediction {
     font-weight: bold;
@@ -255,12 +260,7 @@ blockquote {
   bottom: 0;
   margin: auto;
 }
-#maps {
-    border: 5px dotted #e65100;
-    padding: 1em;
-    margin-bottom: 3%;
 
-}
 
 
 

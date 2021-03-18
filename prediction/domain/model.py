@@ -342,5 +342,11 @@ class ModelRepository:
     def save(self, model: Model):
         raise NotImplementedError()
 
+    def delete_recreates_index(self) -> None:
+        """
+        deletes the index and its content and recreates it empty
+        """
+        raise NotImplementedError()
+
 
 repository: ModelRepository

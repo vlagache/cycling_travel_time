@@ -76,6 +76,10 @@ class Elasticsearch:
             index=index_name,
             body={"query": {"match": {"_id": id_data}}})
 
+    def delete_recreates_index(self, index_name):
+        self.database.indices.delete(index=index_name)
+        self.add_index(index=index_name)
+
 
 class ElasticActivityRepository(ActivityRepository):
     index = "index_activity"
@@ -146,6 +150,9 @@ class ElasticActivityRepository(ActivityRepository):
             index_name=self.index,
             id_data=_id
         )
+
+    def delete_recreates_index(self) -> None:
+        return self.elastic.delete_recreates_index(self.index)
 
 
 class ElasticAthleteRepository(AthleteRepository):
@@ -263,6 +270,9 @@ class ElasticRouteRepository(RouteRepository):
             id_data=_id
         )
 
+    def delete_recreates_index(self) -> None:
+        return self.elastic.delete_recreates_index(self.index)
+
 
 class ElasticModelRepository(ModelRepository):
     index = "index_model"
@@ -349,3 +359,6 @@ class ElasticModelRepository(ModelRepository):
             index_name=self.index,
             id_data=model.id
         )
+
+    def delete_recreates_index(self) -> None:
+        return self.elastic.delete_recreates_index(self.index)
