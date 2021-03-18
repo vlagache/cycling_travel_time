@@ -4,87 +4,94 @@
 
 {% block content %}
 
-<div class="container">
-    <div id="routes_segmentation" class="row">
-        <div class="col s11 push-s1">
 
-            <h2>Prediction</h2>
-
-            <div class="row">
-                <div class="input-field col s7">
-                    <select id="route_choice">
-                        <option value="0" disabled selected>Choisir la route à prédire</option>
-                        {% for route in routes %}
-                        <option value="{{route.id}}">
-                            {{route.name}} - Distance : {{ (route.distance/1000)|round(2) }} km
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <label> Route Select</label>
-                </div>
-            </div>
+{% include 'nav_bar.html' %}
 
 
-            <p>
-                <label>
-                    <input type="checkbox" id="virtual_ride"/>
-                    <span>Home Trainer</span>
-                </label>
-            </p>
+<div id="road_prediction" class="container">
 
+    <div class="row">
+        <blockquote class="input-field col s6 offset-s3">
+            Vous allez maintenant choisir la route sur laquelle vous souhaitez recevoir une prédiction
+            de temps de trajet. Il est aussi possible de spécifier au modèle entrainé si vous souhaitez
+            réaliser sur ce trajet dans la vie réelle ou sur un home trainer.
+        </blockquote>
+    </div>
 
-            <div class="row">
-                <div id="map_route">
-                </div>
-            </div>
+    <div class="row">
+        <div class="input-field col s6 offset-s3">
+            <select id="route_choice">
+                <option value="0" disabled selected>Choisir la route à prédire</option>
+                {% for route in routes %}
+                <option value="{{route.id}}">
+                    {{route.name}} - Distance : {{ (route.distance/1000)|round(2) }} km
+                </option>
+                {% endfor %}
+            </select>
+            <label> Séléction du trajet</label>
+        </div>
+    </div>
 
+    <div id="maps_content" style="display :none;">
+
+        <div class="vertical_line"></div>
+        <div id="maps">
 
             <div class="row">
-                <div id="map_segmentation_route">
-                </div>
+                <blockquote class="input-field col s6">
+                    Présentation du trajet et du sens de parcours
+                </blockquote>
+                <blockquote class="input-field col s6">
+                    Segmentation de votre trajet en segments de montée/plat/descente.
+                </blockquote>
             </div>
 
             <div class="row">
-                <div id="segments">
-                </div>
+                <div id="map_route" class="col s6"></div>
+                <div id="map_segmentation_route" class="col s6"></div>
             </div>
 
 
-            <div class="row">
-                <a id="prediction_btn" class="waves-effect waves-light btn orange darken-4">Prediction</a>
-            </div>
-
-            <div class="prediction">
-                <p>
-                    Prediction : <span class="prediction_time"></span>
-                </p>
-            </div>
-
-            <div id="circle_loading" class="preloader-wrapper active center-align">
-                <div class="spinner-layer spinner-red-only">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="gap-patch">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
+        </div>
+        <div class="vertical_line"></div>
+    </div>
 
 
+    <p class="center-align">
+        <label>
+            <input type="checkbox" id="virtual_ride"/>
+            <span>Home Trainer</span>
+        </label>
+    </p>
+
+    <p class="center-align">
+        <a id="prediction_btn" class="button waves-effect waves-light btn orange darken-4">Prediction</a>
+    </p>
+
+    <p class="center-align info_prediction"></p>
+    <p class="center-align prediction_time"></p>
+
+
+</div>
+
+
+<div id="circle_loading" class="preloader-wrapper big active center-align">
+    <div class="spinner-layer spinner-red-only">
+        <div class="circle-clipper left">
+            <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+            <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+            <div class="circle"></div>
         </div>
     </div>
 </div>
 
 
-<p class="pwdstrava">
-    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
-</p>
-
 {% endblock %}
+
 
 {%block js_script%}
 <script src="js/prediction.js"></script>

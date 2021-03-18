@@ -1,5 +1,16 @@
 jQuery(document).ready(function(){
 
+    // Nav Bar
+
+    switch (window.location.pathname) {
+        case '/authenticated_user':
+            $('.authenticated_user').addClass('active')
+            break;
+        case '/road_prediction':
+            $('.road_prediction').addClass('active')
+            break;
+    }
+
     $(document).ajaxStart(function(){
         $("#authenticated_user").css("opacity",0.2)
         $("#circle_loading").show()

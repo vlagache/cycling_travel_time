@@ -2,8 +2,13 @@ body {
   background-color: lightgrey;
   font-family: 'Roboto', sans-serif;
   font-size: 1.1em;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
-
+main {
+    flex: 1 0 auto;
+}
 
 /* label color */
 .input-field label {
@@ -33,9 +38,53 @@ body {
  color:#e65100 !important;
 }
 
-.pwdstrava{
-    margin-top:5%;
+
+/* Header */
+nav ul a  {
+    color:#e65100 !important;
+    font-weight:bold;
 }
+nav .brand-logo {
+    margin-left: 2%;
+    color:#e65100 !important;
+    font-weight:bold;
+    font-family: 'Abel', sans-serif;
+}
+
+/* Footer */
+
+.page-footer {
+    margin-top: 3%;
+    padding:10px !important;
+    background-color: #BDBDBD!important;
+}
+
+.logo_strava {
+    height:50px;
+}
+
+.footer_content {
+    padding:2px !important;
+    margin:0px !important;
+    height:20px;
+
+}
+
+.footer_p {
+    height:50px;
+    margin: 0 auto;
+}
+
+.copyright {
+  padding-top: 2%;
+}
+
+.me {
+  color:#e65100 !important;
+  font-weight:bold;
+}
+
+
 
 /* Connexion Page */
 
@@ -53,7 +102,19 @@ blockquote {
 
 /* Auth Strava Page */
 
-#authenticated_user{
+#content_auth {
+    margin-top:20%;
+}
+
+.back {
+   margin-top:10%;
+}
+
+
+/* Auth User Page */
+
+#authenticated_user,
+#road_prediction {
     margin-top: 2% !important;
 }
 .strava_link {
@@ -68,7 +129,7 @@ blockquote {
     margin: 0 auto;
     margin-bottom:3%;
 }
-/* Auth User Page */
+
 .lines {
     width: 500px;
     height: 115px;
@@ -130,7 +191,9 @@ blockquote {
     background-color:lightgrey !important;
 }
 
-.activities_in_base, .routes_in_base, .models_in_base {
+.activities_in_base,
+.routes_in_base,
+.models_in_base {
     font-family: 'Righteous', sans-serif;
     color: #e65100;
     font-size: 5em;
@@ -167,20 +230,20 @@ blockquote {
 .no_activities_for_train {
     height:30px;
 }
+/* Prediction */
 
-/*
-#info_activities,
-#info_routes,
-#info_models {
-    border:3px solid green;
+.info_prediction {
+    font-weight: bold;
+    height:40px;
 }
 
-.activities_in_base,
-.routes_in_base,
-.models_in_base {
-    border:3px solid red;
+.prediction_time {
+    font-family: 'Righteous', sans-serif;
+    color: #e65100;
+    font-size: 3em;
+    height:20px;
 }
-*/
+
 
 
 #circle_loading{
@@ -192,12 +255,22 @@ blockquote {
   bottom: 0;
   margin: auto;
 }
+#maps {
+    border: 5px dotted #e65100;
+    padding: 1em;
+    margin-bottom: 3%;
 
+}
+
+
+
+/*
 #map_route, #map_segmentation_route{
     display:block;
     margin-left:auto;
     margin-right:auto;
     width:50%;
     height:50%;
+    border: 3px solid green;
 }
-
+*/

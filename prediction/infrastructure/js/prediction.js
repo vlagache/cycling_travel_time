@@ -1,14 +1,26 @@
 jQuery(document).ready(function(){
 
+    // Nav Bar
+
+    switch (window.location.pathname) {
+        case '/authenticated_user':
+            $('.authenticated_user').addClass('active')
+            break;
+        case '/road_prediction':
+            $('.road_prediction').addClass('active')
+            break;
+    }
+
     $(document).ajaxStart(function(){
+        $("#road_prediction").css("opacity",0.2)
         $("#circle_loading").show()
+        $(".button").addClass('disabled')
     })
 
     $(document).ajaxStop(function(){
-        // reactivation of the button
-        $('#prediction_btn').removeClass('disabled')
+        $("#road_prediction").css("opacity",1)
         $("#circle_loading").hide()
-
+        $(".button").removeClass('disabled')
     })
 
 //    Select Routes
@@ -33,7 +45,8 @@ jQuery(document).ready(function(){
      $('#prediction_btn').on( 'click', function(e){
         if ($('#route_choice option:selected').val() != 0) {
             $('#prediction_btn').addClass('disabled')
-            $('.prediction_time').hide()
+            $('.prediction_time').css('opacity',0)
+
             route_id = $('#route_choice option:selected').val()
             virtual_ride = $('#virtual_ride').prop('checked')
             e.preventDefault();
@@ -43,32 +56,36 @@ jQuery(document).ready(function(){
             }
             $.ajax(options).done(response => {
                 if(response == null) {
-                    $(".prediction_time").text("Pas de modeles entrainés")
-                    $('.prediction_time').show()
+                    $(".info_prediction").text("Pas de modèles entrainés")
+                    /* After a fadeTo opacity = 0  */
+                    $(".info_prediction").css("opacity",1)
+                    $(".info_prediction").delay(5000).fadeTo('slow',0)
                 } else {
                     $(".prediction_time").text(
-                    response.hours+"h"+response.minutes+"min"+response.seconds+"s , Vitesse : "+response.avg_speed_kmh+"km/h"
-                    )
-                    $('.prediction_time').show()
+                    response.hours+"h"+response.minutes+"min"+response.seconds+"s - " + response.avg_speed_kmh + " km/h")
+//                    $('.prediction_time').show()
+                    $('.prediction_time').css('opacity',1)
+                    $(".info_prediction").hide()
                 }
             })
         } else {
-            $(".prediction_time").text("Pas de route selectionné")
-            $('.prediction_time').show()
+            $(".info_prediction").text("Pas de route sélectionnée")
+            /* After a fadeTo opacity = 0  */
+            $(".info_prediction").css("opacity",1)
+            $(".info_prediction").delay(5000).fadeTo('slow',0)
         }
      });
 
 //     Loading Map of Route
      $('#route_choice').on('change', function(e){
         var value = $(this).val()
-        $('#map_route').empty()
-        $('#map_segmentation_route').empty()
-        $('#segments').empty()
-        $('.prediction_time').hide()
+//        $('.prediction_time').hide()
+        $('.prediction_time').css('opacity',0)
+        $(".info_prediction").css('opacity',0)
         e.preventDefault();
         get_map(value);
         get_segmentation_map(value);
-//        get_segmentation(value);
+        $('#maps_content').fadeIn('slow')
      });
 
 
@@ -78,8 +95,9 @@ jQuery(document).ready(function(){
             url: '/get_map?route_id=' + value
         }
         $.ajax(options).done(response => {
-            $('#map_route').append(response)
-        })
+            $('#map_route').html(response)
+
+        });
      });
 
      var get_segmentation_map = (function(value){
@@ -88,26 +106,7 @@ jQuery(document).ready(function(){
             url: '/get_segmentation_map?route_id=' + value
         }
         $.ajax(options).done(response => {
-            $('#map_segmentation_route').append(response)
+            $('#map_segmentation_route').html(response)
         })
      });
-
-//     var get_segmentation=(function(value){
-//        let options = {
-//            method:'GET',
-//            url: '/get_segmentation?route_id=' + value
-//        }
-//        $.ajax(options).done(response => {
-//            $.each(response, function(index , segment){
-//                $('#segments').append(
-//                    "<p class='segment'> Segment " +  (index+1) + " : distance : " + segment.distance +
-//                     " , altitude_gain " + segment.altitude_gain +", average_grade : "
-//                     + segment.average_grade +  " </p>"
-//                )
-//            });
-//        })
-//     });
-
-
-
 })
