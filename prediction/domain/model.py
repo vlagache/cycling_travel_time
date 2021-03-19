@@ -1,5 +1,6 @@
 import logging
 import os
+import glob
 import pickle
 import random
 import time
@@ -16,7 +17,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 
 from prediction.domain import activity
-from utils.functions import transforms_date_in_str, transforms_time_in_str
+from prediction.utils.functions import transforms_date_in_str, transforms_time_in_str
 
 
 class TypeModel(Enum):
@@ -44,6 +45,15 @@ class Model:
         self.rmse = None
         self.training_time = None
         self.training_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    @classmethod
+    def delete_all(cls) -> None:
+        """
+        Deletion of all registered pickle models
+        """
+        files = glob.glob(f'{cls.directory_models}*')
+        for file in files:
+            os.remove(file)
 
     @staticmethod
     def load_data():
@@ -252,7 +262,6 @@ class Model:
         self.rmse = (np.sqrt(mean_squared_error(y_test, y_pred))).item()
 
     def pickle_dump(self, model) -> None:
-        # filename = f'./models/{self.id}'
         filename = self.directory_models + str(self.id)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         pickle.dump(model, open(filename, 'wb'))

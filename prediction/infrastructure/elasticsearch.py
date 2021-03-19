@@ -9,7 +9,7 @@ from prediction.domain.activity import Activity, ActivityRepository
 from prediction.domain.athlete import Athlete, AthleteRepository
 from prediction.domain.model import Model, ModelRepository
 from prediction.domain.route import Route, RouteRepository
-from utils.functions import transforms_string_in_datetime
+from prediction.utils.functions import transforms_string_in_datetime
 
 
 def read(obj):
@@ -80,12 +80,15 @@ class Elasticsearch:
         self.database.indices.delete(index=index_name)
         self.add_index(index=index_name)
 
+    def ping(self):
+        return self.database.ping()
+
 
 class ElasticActivityRepository(ActivityRepository):
     index = "index_activity"
 
-    def __init__(self):
-        self.elastic = Elasticsearch(local_connect=True)
+    def __init__(self, local_connect: bool):
+        self.elastic = Elasticsearch(local_connect=local_connect)
         self.elastic.add_index(self.index)
 
     def is_empty(self) -> bool:
@@ -158,8 +161,8 @@ class ElasticActivityRepository(ActivityRepository):
 class ElasticAthleteRepository(AthleteRepository):
     index = "index_athlete"
 
-    def __init__(self):
-        self.elastic = Elasticsearch(local_connect=True)
+    def __init__(self, local_connect: bool):
+        self.elastic = Elasticsearch(local_connect=local_connect)
         self.elastic.add_index(self.index)
 
     def get(self, id_) -> Athlete:
@@ -203,8 +206,8 @@ class ElasticAthleteRepository(AthleteRepository):
 class ElasticRouteRepository(RouteRepository):
     index = "index_route"
 
-    def __init__(self):
-        self.elastic = Elasticsearch(local_connect=True)
+    def __init__(self, local_connect: bool):
+        self.elastic = Elasticsearch(local_connect=local_connect)
         self.elastic.add_index(self.index)
 
     def is_empty(self) -> bool:
@@ -277,8 +280,8 @@ class ElasticRouteRepository(RouteRepository):
 class ElasticModelRepository(ModelRepository):
     index = "index_model"
 
-    def __init__(self):
-        self.elastic = Elasticsearch(local_connect=True)
+    def __init__(self, local_connect: bool):
+        self.elastic = Elasticsearch(local_connect=local_connect)
         self.elastic.add_index(self.index)
 
     def is_empty(self) -> bool:

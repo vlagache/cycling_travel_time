@@ -4,7 +4,6 @@ import urllib.parse
 from typing import Optional
 
 import requests
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -15,11 +14,8 @@ from starlette.responses import RedirectResponse
 from prediction.domain import athlete, activity, route, model, predict
 from prediction.domain.model import TypeModel
 from prediction.infrastructure.adapter_data import AdapterAthlete
-from prediction.infrastructure.elasticsearch import \
-    ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository, ElasticModelRepository
 from prediction.infrastructure.import_strava import ImportStrava
 
-load_dotenv()
 app = FastAPI()
 
 origins = [
@@ -36,18 +32,16 @@ app.add_middleware(
 
 LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
-athlete.repository = ElasticAthleteRepository()
-activity.repository = ElasticActivityRepository()
-route.repository = ElasticRouteRepository()
-model.repository = ElasticModelRepository()
-
 app.mount("/static", StaticFiles(directory="prediction/infrastructure/static"), name="static")
 app.mount("/js", StaticFiles(directory="prediction/infrastructure/js"), name="js")
 app.mount("/images", StaticFiles(directory="prediction/infrastructure/images"), name="images")
 templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
-#
+####DEBUG
+
+
+##########
 
 @app.get("/delete_activities")
 async def delete_activities():
@@ -63,8 +57,9 @@ async def delete_routes():
 
 @app.get("/delete_models")
 async def delete_models():
+    model.Model.delete_all()
     model.repository.delete_recreates_index()
-    return 'Model index has been deleted and recreated'
+    return 'Model index has been deleted and recreated / All pickles models have been removed '
 
 
 #

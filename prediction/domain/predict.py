@@ -8,7 +8,7 @@ import numpy as np
 from prediction.domain import activity
 from prediction.domain.model import Model
 from prediction.domain.route import Route
-from utils.functions import convert_seconds_in_hms
+from prediction.utils.functions import convert_seconds_in_hms
 
 
 class Predict:

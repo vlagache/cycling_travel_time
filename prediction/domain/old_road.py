@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from prediction.domain.old_segment import Segment
-from utils.functions import sign_equal
+from prediction.utils.functions import sign_equal
 
 pd.options.mode.chained_assignment = None  # default='warn'
 

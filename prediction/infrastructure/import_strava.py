@@ -4,15 +4,13 @@ import time
 from typing import List, Dict
 
 import requests
-from dotenv import load_dotenv
 
 from prediction.domain import athlete, activity, route
 from prediction.infrastructure import adapter_data
-from utils.functions import gpx_parser, compute_segmentation
+from prediction.utils.functions import gpx_parser, compute_segmentation
 
 
 class ImportStrava:
-    load_dotenv()
 
     def __init__(self, athlete_: athlete.Athlete):
         self.athlete = athlete_
