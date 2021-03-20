@@ -1,3 +1,5 @@
+from typing import List
+
 class Athlete:
 
     def __init__(self, id_: int, refresh_token: str, access_token: str,
@@ -13,6 +15,9 @@ class Athlete:
 class AthleteRepository:
 
     def get(self, id_) -> Athlete:
+        raise NotImplementedError()
+
+    def get_all(self) -> List[Athlete]:
         raise NotImplementedError()
 
     def save(self, athlete: Athlete):

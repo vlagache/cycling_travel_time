@@ -71,10 +71,18 @@ class Elasticsearch:
             size=2000,
             body=query)
 
-    def search_by_id(self, index_name, id_data):
+    def search_index(self, index_name):
         return self.database.search(
             index=index_name,
-            body={"query": {"match": {"_id": id_data}}})
+            size=2000,
+            body={"query": {"match_all": {}}}
+        )
+
+    def search_by_id(self, index_name, id_data):
+        return self.database.get(index=index_name, id=id_data)
+        # return self.database.search(
+        #     index=index_name,
+        #     body={"query": {"match": {"_id": id_data}}})
 
     def delete_recreates_index(self, index_name):
         self.database.indices.delete(index=index_name)
@@ -101,7 +109,7 @@ class ElasticActivityRepository(ActivityRepository):
     def get(self, id_) -> Activity:
         result = self.elastic.search_by_id(index_name=self.index,
                                            id_data=id_)
-        activity = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        activity = jsonpickle.decode(read(result.get("_source")))
         return activity
 
     def get_all_desc(self) -> List[Activity]:
@@ -161,15 +169,18 @@ class ElasticActivityRepository(ActivityRepository):
 class ElasticAthleteRepository(AthleteRepository):
     index = "index_athlete"
 
-    def __init__(self, local_connect: bool):
+    def __init__(self, local_connect=True):
         self.elastic = Elasticsearch(local_connect=local_connect)
         self.elastic.add_index(self.index)
 
     def get(self, id_) -> Athlete:
         result = self.elastic.search_by_id(index_name=self.index,
                                            id_data=id_)
-        athlete = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        athlete = jsonpickle.decode(read(result.get("_source")))
         return athlete
+
+    def get_all(self):
+        return self.elastic.search_index(index_name=self.index)
 
     def save(self, athlete: Athlete):
         return self.elastic.store_data(
@@ -220,26 +231,27 @@ class ElasticRouteRepository(RouteRepository):
     def get(self, id_) -> Route:
         result = self.elastic.search_by_id(index_name=self.index,
                                            id_data=id_)
-        route = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        route = jsonpickle.decode(read(result.get("_source")))
         return route
 
     def get_all_desc(self) -> List[Route]:
-        query = {
-            "query": {
-                "match_all": {}
-            },
-            "sort": [
-                {"created_at": "desc"}
-            ]
-        }
-        results = self.elastic.search_with_query(
-            index_name=self.index,
-            query=query
-        )
-        routes = [
-            jsonpickle.decode((read(hit.get("_source"))))
-            for hit in results.get("hits").get("hits")]
-        return routes
+        if not self.is_empty():
+            query = {
+                "query": {
+                    "match_all": {}
+                },
+                "sort": [
+                    {"created_at": "desc"}
+                ]
+            }
+            results = self.elastic.search_with_query(
+                index_name=self.index,
+                query=query
+            )
+            routes = [
+                jsonpickle.decode((read(hit.get("_source"))))
+                for hit in results.get("hits").get("hits")]
+            return routes
 
     def get_general_info(self) -> Dict:
         if not self.is_empty():
@@ -294,7 +306,7 @@ class ElasticModelRepository(ModelRepository):
     def get(self, id_) -> Model:
         result = self.elastic.search_by_id(index_name=self.index,
                                            id_data=id_)
-        model = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
+        model = jsonpickle.decode(read(result.get("_source")))
         return model
 
     def get_all(self) -> List[Model]:

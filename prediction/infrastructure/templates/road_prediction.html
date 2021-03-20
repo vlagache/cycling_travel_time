@@ -22,11 +22,17 @@
         <div class="input-field col s6 offset-s3">
             <select id="route_choice">
                 <option value="0" disabled selected>Choisir la route à prédire</option>
-                {% for route in routes %}
-                <option value="{{route.id}}">
-                    {{route.name}} - Distance : {{ (route.distance/1000)|round(2) }} km
-                </option>
-                {% endfor %}
+                {% if routes is not none %}
+                    {% for route in routes %}
+                    <option value="{{route.id}}">
+                        {{route.name}} - Distance : {{ (route.distance/1000)|round(2) }} km
+                    </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="no_imported_routes" disabled selected>
+                        Vous n'avez importé aucune route dans la base de données
+                    </option>
+                {% endif %}
             </select>
             <label> Séléction du trajet</label>
         </div>

@@ -40,6 +40,9 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 ####DEBUG
 
+@app.get("/debug")
+async def debug():
+    return athlete.repository.get(10944546)
 
 ##########
 
