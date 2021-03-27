@@ -1,5 +1,6 @@
 from typing import List
 
+
 class Athlete:
 
     def __init__(self, id_: int, refresh_token: str, access_token: str,

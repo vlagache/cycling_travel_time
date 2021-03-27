@@ -3,17 +3,17 @@ version: "3.7"
 services:
 
 
-#  api:
-#    image: api-ctt
-#    environment:
-#      - STRAVA_CLIENT_ID=$STRAVA_CLIENT_ID
-#      - STRAVA_CLIENT_SECRET=$STRAVA_CLIENT_SECRET
-#    ports:
-#      - "8090:8090"
-#    volumes:
-#      - app-models:/app/models
-#    networks:
-#      - elastic
+  api:
+    image: api-ctt
+    environment:
+      - STRAVA_CLIENT_ID=$STRAVA_CLIENT_ID
+      - STRAVA_CLIENT_SECRET=$STRAVA_CLIENT_SECRET
+    ports:
+      - "8090:8090"
+    volumes:
+      - app-models:/app/models
+    networks:
+      - elastic
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
@@ -35,8 +35,8 @@ services:
     - elastic
     volumes:
       - elastic-data:/usr/share/elasticsearch/data
-#      - ./snapshots:/mnt/snapshots
-#      - ./config/custom_elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./snapshots:/mnt/snapshots
+      - ./custom_elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
   kibana:
     image: 'docker.elastic.co/kibana/kibana:7.7.1'

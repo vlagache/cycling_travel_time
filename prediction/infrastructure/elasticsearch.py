@@ -80,9 +80,6 @@ class Elasticsearch:
 
     def search_by_id(self, index_name, id_data):
         return self.database.get(index=index_name, id=id_data)
-        # return self.database.search(
-        #     index=index_name,
-        #     body={"query": {"match": {"_id": id_data}}})
 
     def delete_recreates_index(self, index_name):
         self.database.indices.delete(index=index_name)

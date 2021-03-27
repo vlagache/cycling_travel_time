@@ -42,7 +42,8 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 @app.get("/debug")
 async def debug():
-    return athlete.repository.get(10944546)
+    return activity.repository.get_all_desc()
+
 
 ##########
 
@@ -232,8 +233,6 @@ async def strava_token(code: Optional[str] = None):
         athlete.repository.save(athlete_)
 
         response = RedirectResponse("/authenticated_user")
-        response.set_cookie(key="athlete_id",
-                            value=str(athlete_.id),
-                            samesite="Strict")
+        response.set_cookie(key="athlete_id", value=str(athlete_.id))
 
         return response
