@@ -38,21 +38,21 @@ services:
       - ./snapshots:/mnt/snapshots
       - ./custom_elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
-  kibana:
-    image: 'docker.elastic.co/kibana/kibana:7.7.1'
-    environment:
-      SERVER_NAME: kibana.local
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-#      ELASTICSEARCH_USERNAME: elastic
-#      ELASTICSEARCH_PASSWORD: $ELASTIC_PASSWORD
-    ports:
-      - '5601:5601'
-    networks:
-    - elastic
-    expose:
-    - "5601"
-    depends_on:
-    - elasticsearch
+#  kibana:
+#    image: 'docker.elastic.co/kibana/kibana:7.7.1'
+#    environment:
+#      SERVER_NAME: kibana.local
+#      ELASTICSEARCH_URL: http://elasticsearch:9200
+##      ELASTICSEARCH_USERNAME: elastic
+##      ELASTICSEARCH_PASSWORD: $ELASTIC_PASSWORD
+#    ports:
+#      - '5601:5601'
+#    networks:
+#    - elastic
+#    expose:
+#    - "5601"
+#    depends_on:
+#    - elasticsearch
 
 volumes:
   app-models:

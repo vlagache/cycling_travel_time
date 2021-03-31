@@ -27,5 +27,11 @@ class AthleteRepository:
     def search_if_exist(self, firstname, lastname) -> Athlete:
         raise NotImplementedError()
 
+    def delete_recreates_index(self) -> None:
+        """
+        deletes the index and its content and recreates it empty
+        """
+        raise NotImplementedError()
+
 
 repository: AthleteRepository

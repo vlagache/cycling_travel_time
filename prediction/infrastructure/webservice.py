@@ -14,6 +14,7 @@ from starlette.responses import RedirectResponse
 from prediction.domain import athlete, activity, route, model, predict
 from prediction.domain.model import TypeModel
 from prediction.infrastructure.adapter_data import AdapterAthlete
+from prediction.infrastructure.elasticsearch import Elasticsearch
 from prediction.infrastructure.import_strava import ImportStrava
 
 app = FastAPI()
@@ -40,12 +41,19 @@ templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 ####DEBUG
 
-@app.get("/debug")
-async def debug():
-    return activity.repository.get_all_desc()
+@app.get("/query_time")
+async def query_time():
+    result = Elasticsearch().search_index(index_name="index_activity")
+    return result
 
 
 ##########
+
+@app.get("/delete_athletes")
+async def delete_athletes():
+    athlete.repository.delete_recreates_index()
+    return 'Athlete index has been deleted and recreated'
+
 
 @app.get("/delete_activities")
 async def delete_activities():

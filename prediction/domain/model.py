@@ -13,7 +13,6 @@ from typing import List, Dict, Optional
 import numpy as np
 import xgboost as xgb
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 
 from prediction.domain import activity
@@ -21,7 +20,6 @@ from prediction.utils.functions import transforms_date_in_str, transforms_time_i
 
 
 class TypeModel(Enum):
-    LINEAR_REG = LinearRegression()
     XGB = xgb.XGBRegressor()
     RFORREST = RandomForestRegressor()
 

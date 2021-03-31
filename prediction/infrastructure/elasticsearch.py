@@ -210,6 +210,9 @@ class ElasticAthleteRepository(AthleteRepository):
             athlete = jsonpickle.decode(read(result['hits']['hits'][0]['_source']))
             return athlete
 
+    def delete_recreates_index(self) -> None:
+        return self.elastic.delete_recreates_index(self.index)
+
 
 class ElasticRouteRepository(RouteRepository):
     index = "index_route"
