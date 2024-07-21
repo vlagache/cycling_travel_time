@@ -1,6 +1,5 @@
-fit_files/
-gpx_files/
-csv/
 notebooks/
 __pycache__/
 .idea/
+.env
+strava_token.json

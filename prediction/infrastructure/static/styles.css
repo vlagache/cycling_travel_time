@@ -1,0 +1,31 @@
+body {
+  background-color: lightgrey;
+}
+
+.authstrava{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.pwdstrava{
+    position:fixed;
+    bottom:0;
+    right:0;
+}
+
+#circle_loading{
+  display: none;
+  position:absolute;
+  right:50%;
+}
+
+#map_route, #map_segmentation_route{
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+    width:75%;
+    height:75%;
+}
