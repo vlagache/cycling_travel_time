@@ -122,13 +122,13 @@ class Predict:
             if result <= 8000:
                 climb_cat = 0
             elif 8000 < result <= 16000:
-                climb_cat = 4
-            elif 16000 < result <= 32000:
-                climb_cat = 3
-            elif 32000 < result <= 64000:
-                climb_cat = 2
-            elif 64000 < result <= 80000:
                 climb_cat = 1
+            elif 16000 < result <= 32000:
+                climb_cat = 2
+            elif 32000 < result <= 64000:
+                climb_cat = 3
+            elif 64000 < result <= 80000:
+                climb_cat = 4
             elif result > 80000:
                 climb_cat = 5
             segment['climb_category'] = climb_cat
