@@ -1,3 +1,6 @@
+from typing import List
+
+
 class Athlete:
 
     def __init__(self, id_: int, refresh_token: str, access_token: str,
@@ -15,10 +18,19 @@ class AthleteRepository:
     def get(self, id_) -> Athlete:
         raise NotImplementedError()
 
+    def get_all(self) -> List[Athlete]:
+        raise NotImplementedError()
+
     def save(self, athlete: Athlete):
         raise NotImplementedError()
 
     def search_if_exist(self, firstname, lastname) -> Athlete:
+        raise NotImplementedError()
+
+    def delete_recreates_index(self) -> None:
+        """
+        deletes the index and its content and recreates it empty
+        """
         raise NotImplementedError()
 
 

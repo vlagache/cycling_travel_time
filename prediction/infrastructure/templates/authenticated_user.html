@@ -1,132 +1,219 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Pente Simulator Reboot Touchy By Design</title>
-    <!--Import Google Icon Font-->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
-    <!-- Compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-</head>
-<body>
+{% extends 'base.html' %}
 
-<div class="container">
+{% block title %} Donnés {% endblock %}
+
+{% block content %}
+
+{% include 'nav_bar.html' %}
+
+<div id="authenticated_user" class="container">
 
 
-    <div id="auth_infos" class="row">
-        <div class="col s11 push-s1">
-            <h2> Infos Auth</h2>
-            <p> access token : {{ import_strava.athlete.access_token }}</p>
-            <p> refresh_token : {{ import_strava.athlete.refresh_token }}</p>
-            <p> expires_at : {{ import_strava.athlete.token_expires_at }}</p>
-            <p> user_id : {{ import_strava.athlete.id }}</p>
+    <div class="person_img center-align">
+        <img src="images/person.png" alt="person">
+    </div>
+    <p id="person_id" class="center-align"> {{ athlete.firstname }} {{ athlete.lastname }}</p>
+    <p class="center-align"><a href="https://www.strava.com/dashboard?feed_type=my_activity" class="strava_link">Afficher
+        sur Strava</a></p>
+
+    <div class="vertical_line"></div>
+
+
+    <div class="row">
+        <div class="database_img center-align">
+            <img src="images/database.png" alt="database">
         </div>
     </div>
 
 
-    <div id="database_infos" class="row">
-        <div class="col s11 push-s1">
-
-            <h2>Activités</h2>
-
-            {% if info_activities is not none %}
-            <div class="info_activities">
-                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>
-                </p>
-                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>
-                </p>
-                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>
-                </p>
-            </div>
-            {% else %}
-            <div class="info_activities" style="display: none;">
-                <p> Nombre d'activités en base : <span class="activities_in_base">{{ info_activities.activities_in_base }}</span>
-                </p>
-                <p> Nom de la derniere activité : <span class="name_last_activity">{{ info_activities.name_last_activity }}</span>
-                </p>
-                <p> Date/Heure ou a été réalisé la derniere activité qui est en base : <span class="date_last_activity">{{ info_activities.date_last_activity }}</span>
-                </p>
-            </div>
-            <p class="no_activities"> Aucune activité en base pour le moment...</p>
-            {% endif %}
-
-            <a id="update_activities" class="waves-effect waves-light btn orange darken-4">Update Activities</a>
-        </div>
-    </div>
-
-    <div id="routes" class="row">
-        <div class="col s11 push-s1">
-
-            <h2>Routes</h2>
-
-            {% if info_routes is not none %}
-            <div class="info_routes">
-                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
-                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>
-                </p>
-            </div>
-            {% else %}
-            <div class="info_routes" style="display :none;">
-                <p> Nombre de routes en base : <span class="routes_in_base">{{ info_routes.routes_in_base}}</span></p>
-                <p> Nom de la derniere route : <span class="name_last_route">{{ info_routes.name_last_route}}</span></p>
-                <p> Date/Heure ou a été crée la derniere route qui est en base : <span class="date_last_route">{{ info_routes.date_last_route}}</span>
-                </p>
-            </div>
-            <p class="no_routes"> Aucune route en base pour le moment...</p>
-            {% endif %}
-
-            <a id="update_routes" class="waves-effect waves-light btn orange darken-4">Update Routes</a>
-
-        </div>
-    </div>
-
-    <div id="circle_loading" class="preloader-wrapper active center-align">
-        <div class="spinner-layer spinner-red-only">
-            <div class="circle-clipper left">
-                <div class="circle"></div>
-            </div>
-            <div class="gap-patch">
-                <div class="circle"></div>
-            </div>
-            <div class="circle-clipper right">
-                <div class="circle"></div>
-            </div>
-        </div>
+    <div class="lines">
+        <div class="line1"></div>
+        <div class="line2"></div>
+        <div class="line3"></div>
     </div>
 
 
-    <div id="to_do" class="row">
-        <div class="col s11 push-s1">
-            <h2>To do</h2>
-            <p> Entrainement modele machine learning ( Back End entrainement sur les Segments et Prediction sur la route
-                segmentée)</p>
-        </div>
-    </div>
+    <div class="row">
 
-    <div id="other" class="row">
-        <div class="col s11 push-s1">
-            <p>
-                <a class="btn orange darken-4" href="/segmentation">Segmentation</a>
+        <div id="activities" class="col s4 test">
+
+            <div class="activities_img center-align">
+                <img class="icon" src="images/cycling.png" alt="activity">
+            </div>
+
+            <div id="info_activities">
+
+
+                {% if info_activities.activities_in_base is not none %}
+                <div class="activities_in_base center-align">{{ info_activities.activities_in_base }}</div>
+                {% else %}
+                <div class="activities_in_base center-align">0</div>
+                {% endif %}
+
+                <p class="registered_activities center-align">Activités enregistrées</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_activity center-align"> Dernière activitée enregistrée</p>
+
+
+                {% if info_activities.activities_in_base is not none %}
+                <div class="info_last_activity">
+                    <p class="name_last_activity center-align">{{ info_activities.name_last_activity }}</p>
+                    <p class="date_last_activity center-align"> réalisé à {{ info_activities.date_last_activity }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_activity" style="display :none;">
+                    <p class="name_last_activity center-align">{{ info_activities.name_last_activity }}</p>
+                    <p class="date_last_activity center-align"> réalisé le {{ info_activities.date_last_activity }}</p>
+                </div>
+                <p class="no_activities center-align">Aucune activité connue</p>
+                {% endif %}
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+
+            <p class="center-align">
+                <a id="update_activities" class="button waves-effect waves-light btn-small orange darken-4">Update
+                    activities</a>
             </p>
+
+            <p class="center-align no_new_activities"></p>
+
+
         </div>
+
+        <div id="routes" class="col s4 test">
+
+
+            <div class="routes_img center-align">
+                <img class="icon" src="images/road.png" alt="road">
+            </div>
+
+            <div id="info_routes">
+
+                {% if info_routes.routes_in_base is not none %}
+                <div class="routes_in_base center-align">{{ info_routes.routes_in_base }}</div>
+                {% else %}
+                <div class="routes_in_base center-align">0</div>
+                {% endif %}
+
+
+                <p class="registered_routes center-align">Routes enregistrées</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_route center-align"> Dernière route enregistrée</p>
+
+
+                {% if info_routes.routes_in_base is not none %}
+                <div class="info_last_route">
+                    <p class="name_last_route center-align">{{ info_routes.name_last_route }}</p>
+                    <p class="date_last_route center-align"> crée le {{ info_routes.date_last_route }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_route" style="display :none;">
+                    <p class="name_last_route center-align">{{ info_routes.name_last_route }}</p>
+                    <p class="date_last_route center-align"> crée le {{ info_routes.date_last_route }}</p>
+                </div>
+                <p class="no_routes center-align">Aucune route connue</p>
+                {% endif %}
+
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+            <p class="center-align">
+                <a id="update_routes" class="button waves-effect waves-light btn-small orange darken-4">Update
+                    Routes</a>
+            </p>
+
+            <p class="center-align no_new_routes"></p>
+
+        </div>
+
+        <div id="models" class="col s4 test">
+
+            <div class="models_img center-align">
+                <img class="ml_icon" src="images/ml.png" alt="machine learning">
+            </div>
+
+            <div id="info_models">
+
+                {% if info_models.models_in_base is not none %}
+                <div class="models_in_base center-align">{{ info_models.models_in_base }}</div>
+                {% else %}
+                <div class="models_in_base center-align">0</div>
+                {% endif %}
+
+                <p class="registered_models center-align">Modèles enregistrés</p>
+                <p class="center-align underline_title"></p>
+                <p class="last_registered_model center-align"> Dernier modèle enregistré</p>
+
+                {% if info_models.models_in_base is not none %}
+                <div class="info_last_model">
+                    <p class="date_last_model center-align"> entrainé le {{ info_models.date_last_model }}</p>
+                </div>
+                {% else %}
+                <div class="info_last_model" style="display :none;">
+                    <p class="date_last_model center-align"> entrainé le {{ info_models.date_last_model }}</p>
+                </div>
+                <p class="no_models center-align">Aucun modèle entrainé</p>
+                {% endif %}
+
+                <p class="center-align underline_title"></p>
+
+            </div>
+
+            <p class="center-align">
+                <a id="update_models" class="button waves-effect waves-light btn-small orange darken-4">Entrainement</a>
+            </p>
+
+            <p class="center-align no_activities_for_train"></p>
+
+
+        </div>
+    </div>
+
+    <div class="row">
+        <blockquote class="input-field col s6 offset-s3">
+            L'application à besoin pour fonctionner de connaitre l'ensemble de vos activités sportives , ainsi que la
+            ou les
+            routes sur lesquelles vous souhaitez une prédiction de temps de trajet. Les routes sont créées à partir
+            <a href="https://www.strava.com/athlete/routes" class="strava_link">l'outil Strava
+                de création d'itinéraire.</a>
+            Une fois ces données enregistrées vous avez la possibilité d'entrainer un
+            modèle de machine
+            Learning qui va apprendre de vos perfomances passées pour prédire vôtre performance future.
+        </blockquote>
+    </div>
+
+    <div class="row">
+        <p class="center-align">
+            <a class="btn orange darken-4" href="/road_prediction"><i class="material-icons right">arrow_forward_ios</i>Prediction</a>
+        </p>
     </div>
 
 
 </div>
 
-<p class="pwdstrava">
-    <img src="images/api_logo_pwrdBy_strava_horiz_light.png" alt="logo powered by strava">
-</p>
+<div id="circle_loading" class="preloader-wrapper big active center-align">
+    <div class="spinner-layer spinner-red-only">
+        <div class="circle-clipper left">
+            <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+            <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+            <div class="circle"></div>
+        </div>
+    </div>
+</div>
 
 
-<!-- Compiled and minified JavaScript -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endblock %}
+
+
+{%block js_script%}
 <script src="js/auth_user.js"></script>
-<script>M.AutoInit();</script>
-
-
-</body>
-</html>
+{% endblock %}

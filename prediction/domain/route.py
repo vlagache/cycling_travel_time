@@ -65,7 +65,7 @@ class Route:
         )
 
         for segment in self.segmentation:
-            if segment.get("vertical_drop") < 0:
+            if segment.get("average_grade") < 0:
 
                 line = folium.PolyLine(
                     locations=segment.get("all_points"),
@@ -73,7 +73,7 @@ class Route:
                     color="green"
                 ).add_to(m)
 
-            elif segment.get("vertical_drop") > 0:
+            elif segment.get("average_grade") > 0:
 
                 line = folium.PolyLine(
                     locations=segment.get("all_points"),
@@ -119,6 +119,12 @@ class RouteRepository:
         raise NotImplementedError()
 
     def search_if_exist(self, _id) -> bool:
+        raise NotImplementedError()
+
+    def delete_recreates_index(self) -> None:
+        """
+        deletes the index and its content and recreates it empty
+        """
         raise NotImplementedError()
 
 

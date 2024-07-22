@@ -1,31 +1,276 @@
 body {
   background-color: lightgrey;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.1em;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+main {
+    flex: 1 0 auto;
 }
 
-.authstrava{
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
+/* label color */
+.input-field label {
+ color: #e65100 !important;
+}
+/* label focus color */
+.input-field input[type=text]:focus + label {
+ color: #e65100 !important;
+}
+/* label underline focus color */
+.input-field input[type=text]:focus {
+ border-bottom: 1px solid #e65100 !important;
+ box-shadow: 0 1px 0 0 #e65100 !important;
+}
+/* valid color */
+.input-field input[type=text].valid {
+ border-bottom: 1px solid #e65100 !important;
+ box-shadow: 0 1px 0 0 #e65100 !important;
+}
+/* invalid color */
+.input-field input[type=text].invalid {
+ border-bottom: 1px solid#e65100 !important;
+ box-shadow: 0 1px 0 0 #e65100 !important;
+}
+/* icon prefix focus color */
+.input-field .prefix.active {
+ color:#e65100 !important;
 }
 
-.pwdstrava{
-    position:fixed;
-    bottom:0;
-    right:0;
+
+/* Header */
+nav ul a  {
+    color:#e65100 !important;
+    font-weight:bold;
 }
+nav .brand-logo {
+    margin-left: 2%;
+    color:#e65100 !important;
+    font-weight:bold;
+    font-family: 'Abel', sans-serif;
+}
+
+/* Footer */
+
+.page-footer {
+    margin-top: 3%;
+    padding:10px !important;
+    background-color: #BDBDBD!important;
+}
+
+.logo_strava {
+    height:50px;
+}
+
+.footer_content {
+    padding:2px !important;
+    margin:0px !important;
+    height:20px;
+
+}
+
+.footer_p {
+    height:50px;
+    margin: 0 auto;
+}
+
+.copyright {
+  padding-top: 2%;
+}
+
+.me {
+  color:#e65100 !important;
+  font-weight:bold;
+}
+
+
+
+/* Connexion Page */
+
+blockquote {
+    border-left: 5px solid #e65100 !important;
+    text-align: justify;
+}
+
+.icon {
+    width:20%;
+    height:20%;
+    margin-top:2%;
+    margin-bottom:3%;
+}
+
+/* Auth Strava Page */
+
+#content_auth {
+    margin-top:20%;
+}
+
+.back {
+   margin-top:10%;
+}
+
+
+/* Auth User Page */
+
+#authenticated_user,
+#road_prediction {
+    margin-top: 2% !important;
+}
+.strava_link {
+    color: #FC4C02 !important;
+    font-weight:bold !important;
+}
+
+.vertical_line {
+    border-left: 5px dotted #e65100;
+    height:80px;
+    width:2px;
+    margin: 0 auto;
+    margin-bottom:3%;
+}
+
+.lines {
+    width: 500px;
+    height: 115px;
+    padding: 0;
+    margin: 0 auto;
+    margin-bottom:5%;
+
+}
+.line1 {
+    width: 215px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(68px)
+        translateX(10px)
+        rotate(145deg);
+    position: absolute;
+}
+.line2 {
+    width: 120px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(48px)
+        translateX(210px)
+        rotate(90deg);
+    position: absolute;
+}
+.line3 {
+    width: 215px;
+    height: 45px;
+    border-bottom: 5px dotted #e65100;
+    -webkit-transform:
+        translateY(39px)
+        translateX(295px)
+        rotate(37deg);
+    position: absolute;
+}
+
+
+
+.ml_icon {
+    width:20%;
+    height:20%;
+    margin-top:2%;
+    margin-bottom:3%;
+    margin-left:8%;
+}
+
+.underline_title {
+    border-top: 1px solid #e65100;
+    width:60%;
+    margin-left:20%;
+    margin-top:5%;
+    margin-bottom:5%;
+}
+
+.collection .collection-item {
+    background-color:lightgrey !important;
+}
+
+.activities_in_base,
+.routes_in_base,
+.models_in_base {
+    font-family: 'Righteous', sans-serif;
+    color: #e65100;
+    font-size: 5em;
+}
+
+#person_id,
+.registered_activities,
+.last_registered_activity,
+.no_new_activities,
+.registered_routes,
+.last_registered_route,
+.no_new_routes,
+.registered_models,
+.last_registered_model,
+.no_activities_for_train,
+.map_description {
+    font-weight: bold;
+    font-size:0.9em;
+}
+
+.info_last_activity,
+.no_activities,
+.info_last_route,
+.no_routes,
+.info_last_model,
+.no_models {
+    font-weight: bold;
+    margin-top: 8%;
+    color: #e65100;
+
+}
+
+.no_new_activities,
+.no_new_routes,
+.no_activities_for_train {
+    height:30px;
+}
+/* Prediction */
+
+ul.dropdown-content.select-dropdown li span {
+    color: #000; /* no need for !important :) */
+}
+
+.info_prediction {
+    font-weight: bold;
+    height:40px;
+}
+
+.prediction_time {
+    font-family: 'Righteous', sans-serif;
+    color: #e65100;
+    font-size: 3em;
+    height:20px;
+}
+
+
 
 #circle_loading{
+  position: fixed;
   display: none;
-  position:absolute;
-  right:50%;
+  top :0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
 }
 
+
+
+
+/*
 #map_route, #map_segmentation_route{
     display:block;
     margin-left:auto;
     margin-right:auto;
-    width:75%;
-    height:75%;
+    width:50%;
+    height:50%;
+    border: 3px solid green;
 }
+*/

@@ -1,18 +1,17 @@
 import logging
 import os.path
 import time
+import sys
 from typing import List, Dict
 
 import requests
-from dotenv import load_dotenv
 
 from prediction.domain import athlete, activity, route
 from prediction.infrastructure import adapter_data
-from utils.functions import gpx_parser, compute_segmentation
+from prediction.utils.functions import gpx_parser, compute_segmentation
 
 
 class ImportStrava:
-    load_dotenv()
 
     def __init__(self, athlete_: athlete.Athlete):
         self.athlete = athlete_
@@ -51,7 +50,6 @@ class ImportStrava:
                 'grant_type': 'refresh_token'
             }
         )
-
         self.athlete.access_token = strava_request.json()['access_token']
         self.athlete.refresh_token = strava_request.json()['refresh_token']
         self.athlete.token_expires_at = strava_request.json()['expires_at']
@@ -60,15 +58,13 @@ class ImportStrava:
 
     # ACTIVITIES
 
-    def get_all_activities_ids(self) -> List:
+    def get_all_activities(self) -> List:
         """
-        Recovers all cycling strava activities ids
-        Returns the list of the ids of the activities
+        Recover all cycling strava activities
         """
-
         mandatory_type_activity = ['VirtualRide', 'Ride']
         page_number = 1
-        activities_ids = []
+        activities = []
         while True:
             strava_request = requests.get(
                 'https://www.strava.com/api/v3/athlete/activities',
@@ -85,12 +81,13 @@ class ImportStrava:
 
             for activity_json in strava_request.json():
                 if activity_json['type'] in mandatory_type_activity:
-                    activities_ids.append(activity_json['id'])
+                    activities.append(activity_json)
 
             page_number += 1
-        logging.info(f'Recovery of {len(activities_ids)} activities from Strava')
 
-        return activities_ids
+        logging.info(f'Recovery of {len(activities)} activities from Strava')
+
+        return activities
 
     def get_activity_by_id(self, activity_id: int) -> Dict:
         """
@@ -112,10 +109,11 @@ class ImportStrava:
         that are already in the database so as not to request them again.
         Returns ids of the activities to be added
         """
-        activities_ids = self.get_all_activities_ids()
+        activities = self.get_all_activities()
+
         activities_ids_to_added = [
-            activity_id for activity_id in activities_ids
-            if not activity.repository.search_if_exist(_id=activity_id)
+            activity_['id'] for activity_ in activities
+            if not activity.repository.search_if_exist(_id=activity_['id'])
         ]
         logging.info(f'{len(activities_ids_to_added)} new activities to be added to the database')
         return activities_ids_to_added
@@ -133,18 +131,20 @@ class ImportStrava:
                 activity_ = adapter_data.AdapterActivity(activity_json).get()
                 activity.repository.save(activity_)
                 activities_added += 1
+                logging.info(f"Activity {activity_id} added in database "
+                             f"[{round((activities_added * 100)/len(activities_ids_to_added),2)}%]")
             logging.info(f'{activities_added} activities added to the database')
         return activities_added
 
     # ROUTES
 
-    def get_all_routes_ids(self) -> List:
+    def get_all_routes(self) -> List:
         """
-          Recovers all strava routes ids
+          Recovers all strava routes
           Returns the list of the ids of routes
         """
         page_number = 1
-        routes_ids = []
+        routes = []
         while True:
             strava_request = requests.get(
                 f'https://www.strava.com/api/v3/athletes/{self.athlete.id}/routes',
@@ -160,12 +160,11 @@ class ImportStrava:
                 break
 
             for route_json in strava_request.json():
-                routes_ids.append(route_json['id'])
-
+                routes.append(route_json)
             page_number += 1
 
-        logging.info(f'Recovery of {len(routes_ids)} routes from Strava')
-        return routes_ids
+        logging.info(f'Recovery of {len(routes)} routes from Strava')
+        return routes
 
     def get_route_by_id(self, route_id: int) -> Dict:
         """
@@ -187,11 +186,12 @@ class ImportStrava:
         From the list of all Strava's routes, removing of ones
         that are already in the database so as not to request them again.
         Returns ids of routes to be added
+
         """
-        routes_ids = self.get_all_routes_ids()
+        routes = self.get_all_routes()
         routes_ids_to_added = [
-            route_id for route_id in routes_ids
-            if not route.repository.search_if_exist(_id=route_id)
+            route_['id'] for route_ in routes
+            if not route.repository.search_if_exist(_id=route_['id'])
         ]
         logging.info(f'{len(routes_ids_to_added)} new routes to be added to the database')
         return routes_ids_to_added
@@ -213,6 +213,8 @@ class ImportStrava:
                 route_ = adapter_data.AdapterRoute(route_json).get()
                 route.repository.save(route_)
                 routes_added += 1
+                logging.info(f"Route {route_id} added in database "
+                             f"[{round((routes_added * 100)/len(routes_ids_to_added),2)}%]")
             logging.info(f'{routes_added} routes added to the database')
         return routes_added
 

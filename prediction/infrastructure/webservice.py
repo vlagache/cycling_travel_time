@@ -4,26 +4,34 @@ import urllib.parse
 from typing import Optional
 
 import requests
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Cookie, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from prediction.domain import athlete, activity, route
+from prediction.domain import athlete, activity, route, model, predict
+from prediction.domain.model import TypeModel
 from prediction.infrastructure.adapter_data import AdapterAthlete
-from prediction.infrastructure.elasticsearch import \
-    ElasticAthleteRepository, ElasticActivityRepository, ElasticRouteRepository
+from prediction.infrastructure.elasticsearch import Elasticsearch
 from prediction.infrastructure.import_strava import ImportStrava
 
-load_dotenv()
 app = FastAPI()
-LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
-athlete.repository = ElasticAthleteRepository()
-activity.repository = ElasticActivityRepository()
-route.repository = ElasticRouteRepository()
+origins = [
+    "http://localhost:8090"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+LOGIN_URL = "http://www.strava.com/oauth/authorize"
 
 app.mount("/static", StaticFiles(directory="prediction/infrastructure/static"), name="static")
 app.mount("/js", StaticFiles(directory="prediction/infrastructure/js"), name="js")
@@ -31,20 +39,47 @@ app.mount("/images", StaticFiles(directory="prediction/infrastructure/images"), 
 templates = Jinja2Templates(directory="prediction/infrastructure/templates")
 
 
-################# DEBUG
+####DEBUG
+
+@app.get("/query_time")
+async def query_time():
+    result = Elasticsearch().search_index(index_name="index_activity")
+    return result
 
 
-@app.get("/debug")
-async def debug():
-    return 'Debug Path'
+##########
+
+@app.get("/delete_athletes")
+async def delete_athletes():
+    athlete.repository.delete_recreates_index()
+    return 'Athlete index has been deleted and recreated'
 
 
-###################
+@app.get("/delete_activities")
+async def delete_activities():
+    activity.repository.delete_recreates_index()
+    return 'Activity index has been deleted and recreated'
+
+
+@app.get("/delete_routes")
+async def delete_routes():
+    route.repository.delete_recreates_index()
+    return 'Route index has been deleted and recreated'
+
+
+@app.get("/delete_models")
+async def delete_models():
+    model.Model.delete_all()
+    model.repository.delete_recreates_index()
+    return 'Model index has been deleted and recreated / All pickles models have been removed '
+
+
+#
 
 
 @app.get("/", response_class=HTMLResponse)
 async def check_user(request: Request):
-    return templates.TemplateResponse("check_user.html", {"request": request})
+    return templates.TemplateResponse("connexion.html", {"request": request})
 
 
 @app.post("/")
@@ -66,28 +101,25 @@ async def main(request: Request):
 
 @app.get("/authenticated_user", response_class=HTMLResponse)
 async def authenticated_user(request: Request,
-                             athlete_id: str = Cookie(None)
-                             ):
-    # TODO : The new athlete does not have the time to be registered
-    #  in the database before request.
-    time.sleep(1)
+                             athlete_id: str = Cookie(None)):
     athlete_ = athlete.repository.get(athlete_id)
-    import_strava = ImportStrava(athlete_)
     info_activities = activity.repository.get_general_info()
     info_routes = route.repository.get_general_info()
+    info_models = model.repository.get_general_info()
 
     return templates.TemplateResponse("authenticated_user.html",
                                       {"request": request,
-                                       "import_strava": import_strava,
+                                       "athlete": athlete_,
                                        "info_activities": info_activities,
-                                       "info_routes": info_routes})
+                                       "info_routes": info_routes,
+                                       "info_models": info_models})
 
 
-@app.get("/segmentation", response_class=HTMLResponse)
-async def main(request: Request):
+@app.get("/road_prediction", response_class=HTMLResponse)
+async def road_prediction(request: Request):
     routes = route.repository.get_all_desc()
-    return templates.TemplateResponse("segmentation.html", {"request": request,
-                                                            "routes": routes})
+    return templates.TemplateResponse("road_prediction.html", {"request": request,
+                                                               "routes": routes})
 
 
 #############
@@ -110,6 +142,37 @@ async def get_new_routes(athlete_id: str = Cookie(None)):
     info_routes = route.repository.get_general_info()
     info_routes['routes_added'] = routes_added
     return info_routes
+
+
+@app.get("/train_models")
+async def train_models():
+    if activity.repository.is_empty():
+        # TODO: Very ugly method to avoid flashing on frontend
+        #  The response is too fast which does not allow time
+        #  for the loading screen to appear
+        time.sleep(1.5)
+        return None
+    else:
+        for type_model in TypeModel:
+            model_ = model.Model(model=type_model)
+            model_.train()
+            model.repository.save(model_)
+
+        info_models = model.repository.get_general_info()
+        return info_models
+
+
+@app.get("/get_prediction")
+async def get_prediction(route_id: int, virtual_ride: bool):
+    if model.repository.is_empty():
+        return None
+    else:
+        route_ = route.repository.get(route_id)
+        model_ = model.repository.get_better_mape()
+        predict_ = predict.Predict(model=model_,
+                                   route=route_,
+                                   virtual_ride=virtual_ride)
+        return predict_.get_prediction()
 
 
 @app.get("/get_map")
